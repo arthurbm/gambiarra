@@ -1,0 +1,86 @@
+import { z } from "zod";
+
+// Health check interval in milliseconds
+export const HEALTH_CHECK_INTERVAL = 10_000;
+// Time after which a participant is considered offline (3 missed health checks)
+export const PARTICIPANT_TIMEOUT = HEALTH_CHECK_INTERVAL * 3;
+
+// Generation config (compatible with OpenAI-like APIs)
+// These are the common parameters supported by most providers
+// Provider-specific params can be passed via the API but aren't stored in participant config
+export const GenerationConfig = z.object({
+  // Standard OpenAI-compatible params
+  temperature: z.number().min(0).max(2).optional(),
+  top_p: z.number().min(0).max(1).optional(),
+  max_tokens: z.number().optional(),
+  stop: z.array(z.string()).optional(),
+  frequency_penalty: z.number().min(-2).max(2).optional(),
+  presence_penalty: z.number().min(-2).max(2).optional(),
+  seed: z.number().optional(),
+});
+
+export type GenerationConfig = z.infer<typeof GenerationConfig>;
+// Alias for backwards compatibility
+export const OllamaConfig = GenerationConfig;
+export type OllamaConfig = GenerationConfig;
+
+export const MachineSpecs = z.object({
+  gpu: z.string().optional(),
+  vram: z.number().optional(),
+  ram: z.number().optional(),
+  cpu: z.string().optional(),
+});
+
+export type MachineSpecs = z.infer<typeof MachineSpecs>;
+
+export const ParticipantStatus = z.enum(["online", "busy", "offline"]);
+export type ParticipantStatus = z.infer<typeof ParticipantStatus>;
+
+export const ParticipantInfo = z.object({
+  id: z.string(),
+  nickname: z.string(),
+  model: z.string(),
+  endpoint: z.string().url(), // OpenAI-compatible API endpoint (Ollama, LM Studio, etc.)
+  config: GenerationConfig,
+  specs: MachineSpecs,
+  status: ParticipantStatus,
+  joinedAt: z.number(),
+  lastSeen: z.number(), // Timestamp of last health check
+});
+
+export type ParticipantInfo = z.infer<typeof ParticipantInfo>;
+
+export const RoomInfo = z.object({
+  id: z.string(),
+  code: z.string(),
+  name: z.string(),
+  hostId: z.string(),
+  createdAt: z.number(),
+});
+
+export type RoomInfo = z.infer<typeof RoomInfo>;
+
+export const LlmMetrics = z.object({
+  tokens: z.number(),
+  latencyFirstTokenMs: z.number(),
+  durationMs: z.number(),
+  tokensPerSecond: z.number(),
+});
+
+export type LlmMetrics = z.infer<typeof LlmMetrics>;
+
+// Network configuration for the Hub
+export const NetworkConfig = z.object({
+  hostname: z.string().default("127.0.0.1"),
+  port: z.number().min(0).max(65_535).default(3000),
+  mdns: z.boolean().default(false),
+  cors: z.array(z.string()).default([]),
+});
+
+export type NetworkConfig = z.infer<typeof NetworkConfig>;
+
+export const HubConfig = z.object({
+  network: NetworkConfig.optional(),
+});
+
+export type HubConfig = z.infer<typeof HubConfig>;

@@ -1,0 +1,1 @@
+# `@gambiarra/core`
