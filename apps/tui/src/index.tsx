@@ -1,16 +1,22 @@
-import { createCliRenderer, TextAttributes } from "@opentui/core";
+import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
+import { App } from "./App";
 
-function App() {
-  return (
-    <box alignItems="center" flexGrow={1} justifyContent="center">
-      <box alignItems="flex-end" justifyContent="center">
-        <ascii-font font="tiny" text="OpenTUI" />
-        <text attributes={TextAttributes.DIM}>What will you build?</text>
-      </box>
-    </box>
-  );
+export interface StartTUIOptions {
+  hubUrl: string;
 }
 
-const renderer = await createCliRenderer();
-createRoot(renderer).render(<App />);
+export async function startTUI(options: StartTUIOptions) {
+  const renderer = await createCliRenderer();
+  createRoot(renderer).render(<App hubUrl={options.hubUrl} />);
+}
+
+// Run standalone when executed directly
+if (import.meta.main) {
+  const args = process.argv.slice(2);
+  const hubIndex = args.indexOf("--hub");
+  const customHub = hubIndex !== -1 ? args[hubIndex + 1] : undefined;
+  const hubUrl = customHub ?? "http://localhost:3000";
+
+  startTUI({ hubUrl });
+}

@@ -7,11 +7,13 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "bun run --cwd packages/cli src/cli.ts serve",
+    "dev:hub": "bun run --cwd packages/cli src/cli.ts serve",
+    "dev:tui": "bun run --cwd apps/tui src/index.tsx",
+    "dev:monitor": "bun run --cwd packages/cli src/cli.ts monitor",
+    "dev:docs": "turbo -F docs dev",
     "build": "turbo build",
-    "check-types": "turbo check-types",
-    "dev:native": "turbo -F native dev",
-    "dev:web": "turbo -F web dev"
+    "check-types": "turbo check-types"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
