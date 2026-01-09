@@ -285,7 +285,9 @@ export function useRooms(options: UseRoomsOptions): UseRoomsReturn {
           data && typeof data === "object" && "participants" in data
             ? (data as { participants: unknown }).participants
             : data;
-        const parsed = z.array(ParticipantInfoSchema).safeParse(participantsArray);
+        const parsed = z
+          .array(ParticipantInfoSchema)
+          .safeParse(participantsArray);
         if (!parsed.success) {
           return;
         }
