@@ -68,7 +68,7 @@ rooms.addParticipant(room.id, participant);
 Connect to a remote Gambiarra hub:
 
 ```typescript
-import { createClient } from "gambiarra/client";
+import { createClient } from "gambiarra";
 
 const client = createClient({ hubUrl: "http://hub.example.com:3000" });
 
@@ -232,11 +232,7 @@ import type {
   MachineSpecs,
   HubConfig,
   NetworkConfig,
-  // OpenAI compatibility
-  ChatCompletion,
-  ChatCompletionCreateParams,
-  Model,
-} from "gambiarra/types";
+} from "gambiarra";
 ```
 
 ### Runtime Validation
@@ -248,7 +244,7 @@ import {
   ParticipantInfoSchema,
   RoomInfoSchema,
   GenerationConfigSchema,
-} from "gambiarra/types";
+} from "gambiarra";
 
 // Validate at runtime
 const result = ParticipantInfoSchema.parse(data);
@@ -260,13 +256,13 @@ Import only what you need for optimal bundle size:
 
 ```typescript
 // Import specific namespaces
-import { rooms } from "gambiarra/rooms";
-import { participants } from "gambiarra/participants";
-import { hub } from "gambiarra/hub";
-
-// Or from main entry
 import { rooms, participants, hub } from "gambiarra";
+
+// Or destructure what you need
+import { createClient, createGambiarra } from "gambiarra";
 ```
+
+Modern bundlers (webpack, esbuild, rollup) will tree-shake unused exports.
 
 ## Architecture
 
@@ -337,7 +333,7 @@ for (const { roomId, participantId } of stale) {
 ### Error Handling
 
 ```typescript
-import { ClientError } from "gambiarra/client";
+import { ClientError } from "gambiarra";
 
 try {
   await client.join("INVALID", participant);
