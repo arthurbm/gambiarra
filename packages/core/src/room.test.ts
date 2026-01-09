@@ -104,8 +104,11 @@ describe("Room", () => {
       const participant = createMockParticipant();
       Room.addParticipant(room.id, participant);
 
-      const [roomWithCount] = Room.listWithParticipantCount();
-      expect(roomWithCount.participantCount).toBe(1);
+      const rooms = Room.listWithParticipantCount();
+      expect(rooms).toHaveLength(1);
+      const firstRoom = rooms[0];
+      expect(firstRoom).toBeDefined();
+      expect(firstRoom?.participantCount).toBe(1);
     });
   });
 

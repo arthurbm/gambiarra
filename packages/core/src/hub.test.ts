@@ -6,8 +6,56 @@ import {
   expect,
   test,
 } from "bun:test";
+import { z } from "zod";
 import { createHub, type Hub } from "./hub.ts";
 import { Room } from "./room.ts";
+
+const HealthResponseSchema = z.object({
+  status: z.string(),
+  timestamp: z.string(),
+});
+
+const RoomResponseSchema = z.object({
+  room: z.object({ id: z.string(), code: z.string(), name: z.string() }),
+  hostId: z.string(),
+});
+
+const ErrorResponseSchema = z.object({
+  error: z.string(),
+});
+
+const RoomsListResponseSchema = z.object({
+  rooms: z.array(z.object({ participantCount: z.number() })),
+});
+
+const JoinResponseSchema = z.object({
+  participant: z.object({ id: z.string(), nickname: z.string() }),
+  roomId: z.string(),
+});
+
+const SuccessResponseSchema = z.object({
+  success: z.boolean(),
+});
+
+const ParticipantsResponseSchema = z.object({
+  participants: z.array(z.object({ nickname: z.string() })),
+});
+
+const ModelsResponseSchema = z.object({
+  object: z.string(),
+  data: z.array(
+    z.object({
+      id: z.string(),
+      object: z.string(),
+      owned_by: z.string(),
+      gambiarra: z.object({
+        nickname: z.string(),
+        model: z.string(),
+        endpoint: z.string(),
+      }),
+    })
+  ),
+});
 
 describe("Hub", () => {
   let hub: Hub;
@@ -33,10 +81,7 @@ describe("Hub", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
-    return res.json() as Promise<{
-      room: { id: string; code: string; name: string };
-      hostId: string;
-    }>;
+    return RoomResponseSchema.parse(await res.json());
   }
 
   async function joinRoom(
@@ -59,7 +104,7 @@ describe("Hub", () => {
   describe("GET /health", () => {
     test("returns health status", async () => {
       const res = await fetch(`${baseUrl}/health`);
-      const data = await res.json();
+      const data = HealthResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.status).toBe("ok");
@@ -74,7 +119,7 @@ describe("Hub", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "Test Room" }),
       });
-      const data = await res.json();
+      const data = RoomResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(201);
       expect(data.room.name).toBe("Test Room");
@@ -88,7 +133,7 @@ describe("Hub", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      const data = await res.json();
+      const data = ErrorResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(400);
       expect(data.error).toBe("Name is required");
@@ -98,7 +143,7 @@ describe("Hub", () => {
   describe("GET /rooms", () => {
     test("returns empty list when no rooms", async () => {
       const res = await fetch(`${baseUrl}/rooms`);
-      const data = await res.json();
+      const data = RoomsListResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.rooms).toEqual([]);
@@ -109,11 +154,13 @@ describe("Hub", () => {
       await createRoom("Room 2");
 
       const res = await fetch(`${baseUrl}/rooms`);
-      const data = await res.json();
+      const data = RoomsListResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.rooms).toHaveLength(2);
-      expect(data.rooms[0].participantCount).toBe(0);
+      const firstRoom = data.rooms[0];
+      expect(firstRoom).toBeDefined();
+      expect(firstRoom?.participantCount).toBe(0);
     });
   });
 
@@ -128,9 +175,10 @@ describe("Hub", () => {
       });
 
       expect(res.status).toBe(201);
-      expect(data.participant.id).toBe("participant-1");
-      expect(data.participant.nickname).toBe("test-user");
-      expect(data.roomId).toBe(room.id);
+      const joinData = JoinResponseSchema.parse(data);
+      expect(joinData.participant.id).toBe("participant-1");
+      expect(joinData.participant.nickname).toBe("test-user");
+      expect(joinData.roomId).toBe(room.id);
     });
 
     test("returns error for non-existent room", async () => {
@@ -142,7 +190,8 @@ describe("Hub", () => {
       });
 
       expect(res.status).toBe(404);
-      expect(data.error).toBe("Room not found");
+      const errorData = ErrorResponseSchema.parse(data);
+      expect(errorData.error).toBe("Room not found");
     });
 
     test("returns error when required fields are missing", async () => {
@@ -152,7 +201,7 @@ describe("Hub", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: "participant-1" }),
       });
-      const data = await res.json();
+      const data = ErrorResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(400);
       expect(data.error).toContain("Missing required fields");
@@ -173,7 +222,7 @@ describe("Hub", () => {
         `${baseUrl}/rooms/${room.code}/leave/participant-1`,
         { method: "DELETE" }
       );
-      const data = await res.json();
+      const data = SuccessResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
@@ -185,7 +234,7 @@ describe("Hub", () => {
         `${baseUrl}/rooms/${room.code}/leave/non-existent`,
         { method: "DELETE" }
       );
-      const data = await res.json();
+      const data = ErrorResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(404);
       expect(data.error).toBe("Participant not found");
@@ -207,7 +256,7 @@ describe("Hub", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: "participant-1" }),
       });
-      const data = await res.json();
+      const data = SuccessResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
@@ -220,7 +269,7 @@ describe("Hub", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: "non-existent" }),
       });
-      const data = await res.json();
+      const data = ErrorResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(404);
       expect(data.error).toBe("Participant not found");
@@ -238,16 +287,18 @@ describe("Hub", () => {
       });
 
       const res = await fetch(`${baseUrl}/rooms/${room.code}/participants`);
-      const data = await res.json();
+      const data = ParticipantsResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.participants).toHaveLength(1);
-      expect(data.participants[0].nickname).toBe("test-user");
+      const firstParticipant = data.participants[0];
+      expect(firstParticipant).toBeDefined();
+      expect(firstParticipant?.nickname).toBe("test-user");
     });
 
     test("returns error for non-existent room", async () => {
       const res = await fetch(`${baseUrl}/rooms/XXXXXX/participants`);
-      const data = await res.json();
+      const data = ErrorResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(404);
       expect(data.error).toBe("Room not found");
@@ -265,15 +316,17 @@ describe("Hub", () => {
       });
 
       const res = await fetch(`${baseUrl}/rooms/${room.code}/v1/models`);
-      const data = await res.json();
+      const data = ModelsResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.object).toBe("list");
       expect(data.data).toHaveLength(1);
-      expect(data.data[0].id).toBe("participant-1");
-      expect(data.data[0].object).toBe("model");
-      expect(data.data[0].owned_by).toBe("test-user");
-      expect(data.data[0].gambiarra).toEqual({
+      const firstModel = data.data[0];
+      expect(firstModel).toBeDefined();
+      expect(firstModel?.id).toBe("participant-1");
+      expect(firstModel?.object).toBe("model");
+      expect(firstModel?.owned_by).toBe("test-user");
+      expect(firstModel?.gambiarra).toEqual({
         nickname: "test-user",
         model: "llama3",
         endpoint: "http://localhost:11434",
@@ -293,7 +346,7 @@ describe("Hub", () => {
       Room.updateParticipantStatus(room.id, "participant-1", "offline");
 
       const res = await fetch(`${baseUrl}/rooms/${room.code}/v1/models`);
-      const data = await res.json();
+      const data = ModelsResponseSchema.parse(await res.json());
 
       expect(res.status).toBe(200);
       expect(data.data).toHaveLength(0);

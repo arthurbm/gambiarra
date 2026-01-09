@@ -1,13 +1,13 @@
 import { useKeyboard, useRenderer } from "@opentui/react";
 import { useCallback, useState } from "react";
-import { ActivityLog } from "./components/ActivityLog";
-import { AddRoomModal } from "./components/AddRoomModal";
-import { Footer } from "./components/Footer";
-import { Header } from "./components/Header";
-import { ParticipantList } from "./components/ParticipantList";
-import { RoomSelector } from "./components/RoomSelector";
-import { RoomTabs } from "./components/RoomTabs";
-import { useRooms } from "./hooks/useRooms";
+import { ActivityLog } from "./components/activity-log";
+import { AddRoomModal } from "./components/add-room-modal";
+import { Footer } from "./components/footer";
+import { Header } from "./components/header";
+import { ParticipantList } from "./components/participant-list";
+import { RoomSelector } from "./components/room-selector";
+import { RoomTabs } from "./components/room-tabs";
+import { useRooms } from "./hooks/use-rooms";
 
 type Screen = "selector" | "dashboard" | "addRoom";
 
@@ -52,37 +52,38 @@ export function App({ hubUrl }: AppProps) {
     [addRoom]
   );
 
-  // Keyboard shortcuts for dashboard
+  const handleCycleRooms = useCallback(() => {
+    const roomList = [...rooms.keys()];
+    if (roomList.length > 1 && activeRoom) {
+      const currentIndex = roomList.indexOf(activeRoom);
+      const nextIndex = (currentIndex + 1) % roomList.length;
+      setActiveRoom(roomList[nextIndex] ?? null);
+    }
+  }, [rooms, activeRoom, setActiveRoom]);
+
+  const handleRefreshRoom = useCallback(() => {
+    if (activeRoom && rooms.has(activeRoom)) {
+      removeRoom(activeRoom);
+      addRoom(activeRoom);
+    }
+  }, [activeRoom, rooms, removeRoom, addRoom]);
+
+  const keyboardHandlers: Record<string, () => void> = {
+    q: handleQuit,
+    tab: handleCycleRooms,
+    a: () => setScreen("addRoom"),
+    r: handleRefreshRoom,
+    e: () => setExpanded((prev) => !prev),
+  };
+
   useKeyboard(
     (key) => {
       if (screen !== "dashboard") {
         return;
       }
-
-      if (key.name === "q") {
-        handleQuit();
-      } else if (key.name === "tab") {
-        // Cycle through rooms
-        const roomList = [...rooms.keys()];
-        if (roomList.length > 1 && activeRoom) {
-          const currentIndex = roomList.indexOf(activeRoom);
-          const nextIndex = (currentIndex + 1) % roomList.length;
-          setActiveRoom(roomList[nextIndex] ?? null);
-        }
-      } else if (key.name === "a") {
-        setScreen("addRoom");
-      } else if (key.name === "r") {
-        // Refresh current room
-        if (activeRoom) {
-          const room = rooms.get(activeRoom);
-          if (room) {
-            // Force re-fetch by removing and re-adding
-            removeRoom(activeRoom);
-            addRoom(activeRoom);
-          }
-        }
-      } else if (key.name === "e") {
-        setExpanded((prev) => !prev);
+      const handler = keyboardHandlers[key.name];
+      if (handler) {
+        handler();
       }
     },
     { release: false }

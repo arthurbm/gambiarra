@@ -17,6 +17,48 @@ interface UseSSEReturn {
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 10;
 
+async function processSSEStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onEvent: (event: string, data: unknown) => void
+): Promise<void> {
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = parseSSEBuffer(buffer);
+    buffer = events.remaining;
+
+    for (const event of events.parsed) {
+      onEvent(event.event, event.data);
+    }
+  }
+}
+
+async function fetchSSEResponse(
+  url: string,
+  signal: AbortSignal
+): Promise<Response> {
+  const response = await fetch(url, {
+    signal,
+    headers: { Accept: "text/event-stream" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  if (!response.body) {
+    throw new Error("No response body");
+  }
+
+  return response;
+}
+
 export function useSSE(options: UseSSEOptions): UseSSEReturn {
   const { hubUrl, roomCode, onEvent, enabled = true } = options;
 
@@ -34,7 +76,6 @@ export function useSSE(options: UseSSEOptions): UseSSEReturn {
       return;
     }
 
-    // Cleanup previous connection
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -43,61 +84,28 @@ export function useSSE(options: UseSSEOptions): UseSSEReturn {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(`${hubUrl}/rooms/${roomCode}/events`, {
-        signal: controller.signal,
-        headers: {
-          Accept: "text/event-stream",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      if (!response.body) {
-        throw new Error("No response body");
-      }
+      const url = `${hubUrl}/rooms/${roomCode}/events`;
+      const response = await fetchSSEResponse(url, controller.signal);
 
       setConnected(true);
       setError(null);
       reconnectAttemptsRef.current = 0;
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-
-        // Parse SSE events from buffer
-        const events = parseSSEBuffer(buffer);
-        buffer = events.remaining;
-
-        for (const event of events.parsed) {
-          onEvent(event.event, event.data);
-        }
+      const reader = response.body?.getReader();
+      if (reader) {
+        await processSSEStream(reader, onEvent);
       }
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
-        // Intentional abort, don't reconnect
         return;
       }
 
       setConnected(false);
       setError(err instanceof Error ? err : new Error(String(err)));
 
-      // Attempt reconnection
       if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttemptsRef.current++;
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, RECONNECT_DELAY);
+        reconnectTimeoutRef.current = setTimeout(connect, RECONNECT_DELAY);
       }
     }
   }, [hubUrl, roomCode, onEvent, enabled]);
@@ -130,28 +138,43 @@ interface ParsedSSEResult {
   remaining: string;
 }
 
+function tryParseEvent(
+  eventType: string,
+  eventData: string
+): SSEEvent | undefined {
+  if (!(eventType && eventData)) {
+    return undefined;
+  }
+  try {
+    return { event: eventType, data: JSON.parse(eventData) };
+  } catch {
+    return undefined;
+  }
+}
+
+function buildRemainingBuffer(eventType: string, eventData: string): string {
+  let remaining = "";
+  if (eventType) {
+    remaining += `event: ${eventType}\n`;
+  }
+  if (eventData) {
+    remaining += `data: ${eventData}\n`;
+  }
+  return remaining;
+}
+
 function parseSSEBuffer(buffer: string): ParsedSSEResult {
   const events: SSEEvent[] = [];
   const lines = buffer.split("\n");
 
   let currentEvent = "";
   let currentData = "";
-  let i = 0;
 
-  for (; i < lines.length; i++) {
-    const line = lines[i] as string;
-
+  for (const line of lines) {
     if (line === "") {
-      // Empty line marks end of event
-      if (currentEvent && currentData) {
-        try {
-          events.push({
-            event: currentEvent,
-            data: JSON.parse(currentData),
-          });
-        } catch {
-          // Invalid JSON, skip event
-        }
+      const parsed = tryParseEvent(currentEvent, currentData);
+      if (parsed) {
+        events.push(parsed);
       }
       currentEvent = "";
       currentData = "";
@@ -165,17 +188,6 @@ function parseSSEBuffer(buffer: string): ParsedSSEResult {
     }
   }
 
-  // Return any incomplete event data as remaining buffer
-  let remaining = "";
-  if (currentEvent || currentData) {
-    // Reconstruct the incomplete event
-    if (currentEvent) {
-      remaining += `event: ${currentEvent}\n`;
-    }
-    if (currentData) {
-      remaining += `data: ${currentData}\n`;
-    }
-  }
-
+  const remaining = buildRemainingBuffer(currentEvent, currentData);
   return { parsed: events, remaining };
 }

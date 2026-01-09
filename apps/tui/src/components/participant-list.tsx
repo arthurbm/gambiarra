@@ -1,6 +1,6 @@
 import type { LogMetrics, ParticipantInfo } from "../types";
 import { colors } from "../types";
-import { ParticipantCard } from "./ParticipantCard";
+import { ParticipantCard } from "./participant-card";
 
 interface ParticipantListProps {
   participants: Map<string, ParticipantInfo>;
