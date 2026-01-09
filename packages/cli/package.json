@@ -1,6 +1,25 @@
 {
   "name": "@gambiarra/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "description": "CLI for Gambiarra - Share local LLMs across your network",
+  "keywords": [
+    "llm",
+    "ollama",
+    "ai",
+    "cli",
+    "local-ai",
+    "local-llm",
+    "lm-studio"
+  ],
+  "author": "Arthur BM",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arthurbm/gambiarra.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/arthurbm/gambiarra",
+  "bugs": "https://github.com/arthurbm/gambiarra/issues",
   "type": "module",
   "bin": {
     "gambiarra": "./src/cli.ts"
@@ -12,8 +31,13 @@
     "./list": "./src/commands/list.ts",
     "./monitor": "./src/commands/monitor.ts"
   },
+  "files": [
+    "src",
+    "README.md"
+  ],
   "scripts": {
     "dev": "bun run src/cli.ts",
+    "build": "bun run build.ts",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -27,5 +51,8 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

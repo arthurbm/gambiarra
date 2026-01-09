@@ -18,29 +18,44 @@
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.x-ef4444?logo=turborepo&logoColor=white)](https://turbo.build/repo)
 [![Vercel AI SDK](https://img.shields.io/badge/Vercel_AI_SDK-Compatible-000000?logo=vercel&logoColor=white)](https://sdk.vercel.ai)
 
-[Quick Start](#-quick-start) • [npm Package](https://www.npmjs.com/package/gambiarra) • [Documentation](./docs/architecture.md) • [Examples](#-usage-examples)
-
 </div>
 
 ---
 
-## 📖 What is Gambiarra?
+## Table of Contents
+
+- [What is Gambiarra?](#-what-is-gambiarra)
+- [Installation](#-installation)
+  - [CLI](#cli)
+  - [SDK](#sdk)
+- [Quick Start](#-quick-start)
+- [Features](#-features)
+- [Usage Examples](#-usage-examples)
+- [Architecture](#-architecture)
+- [Development](#-development)
+- [Supported Providers](#-supported-providers)
+- [Security](#-security-considerations)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## What is Gambiarra?
 
 **Gambiarra** is a local-first LLM sharing system that allows multiple users on a network to pool their LLM resources together. Think of it as a "LLM Club" where everyone shares their Ollama, LM Studio, LocalAI, or any OpenAI-compatible endpoint.
 
 ### Why Gambiarra?
 
-- **🏠 Local-First**: Your data stays on your network
-- **🤝 Resource Sharing**: Pool LLM endpoints across your team
-- **🔌 Universal Compatibility**: Works with any OpenAI-compatible API
-- **🚀 Vercel AI SDK Integration**: Drop-in replacement for your AI SDK workflows
-- **🔍 Auto-Discovery**: mDNS/Bonjour support for zero-config networking
-- **📊 Real-time Monitoring**: Beautiful TUI for tracking room activity
-- **⚡ Production Ready**: Built with TypeScript, Bun, and modern tooling
+- **Local-First**: Your data stays on your network
+- **Resource Sharing**: Pool LLM endpoints across your team
+- **Universal Compatibility**: Works with any OpenAI-compatible API
+- **Vercel AI SDK Integration**: Drop-in replacement for your AI SDK workflows
+- **Auto-Discovery**: mDNS/Bonjour support for zero-config networking
+- **Real-time Monitoring**: Beautiful TUI for tracking room activity
+- **Production Ready**: Built with TypeScript, Bun, and modern tooling
 
----
-
-## 🎯 Use Cases
+### Use Cases
 
 - **Development Teams**: Share expensive LLM endpoints across your team
 - **Hackathons**: Pool resources for AI projects
@@ -50,9 +65,96 @@
 
 ---
 
-## ✨ Features
+## Installation
 
-### 🎮 CLI Interface
+### CLI
+
+The CLI allows you to start hubs, create rooms, and join as a participant.
+
+**Via curl (recommended - standalone binary):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/arthurbm/gambiarra/main/scripts/install.sh | bash
+```
+
+**Via npm:**
+
+```bash
+npm install -g @gambiarra/cli
+```
+
+**Verify installation:**
+
+```bash
+gambiarra --version
+```
+
+### SDK
+
+The SDK provides Vercel AI SDK integration for using shared LLMs in your applications.
+
+**Via npm:**
+
+```bash
+npm install gambiarra
+```
+
+**Via bun:**
+
+```bash
+bun add gambiarra
+```
+
+---
+
+## Quick Start
+
+### 1. Start the Hub Server
+
+```bash
+gambiarra serve --port 3000 --mdns
+```
+
+### 2. Create a Room
+
+```bash
+gambiarra create
+# Output: Room created! Code: ABC123
+```
+
+### 3. Join with Your LLM
+
+```bash
+gambiarra join ABC123 \
+  --endpoint http://localhost:11434 \
+  --model llama3 \
+  --nickname joao
+```
+
+### 4. Use the SDK
+
+```typescript
+import { createGambiarra } from "gambiarra";
+import { generateText } from "ai";
+
+const gambiarra = createGambiarra({
+  roomCode: "ABC123",
+  hubUrl: "http://localhost:3000",
+});
+
+const result = await generateText({
+  model: gambiarra.any(),
+  prompt: "Hello, Gambiarra!",
+});
+
+console.log(result.text);
+```
+
+---
+
+## Features
+
+### CLI Interface
 
 ```bash
 # Start a hub server
@@ -68,15 +170,7 @@ gambiarra join ABC123 --endpoint http://localhost:11434 --model llama3
 gambiarra list
 ```
 
-### 🔧 SDK Integration
-
-Install via npm:
-
-```bash
-npm install gambiarra
-```
-
-Use in your project:
+### SDK Integration
 
 ```typescript
 import { createGambiarra } from "gambiarra";
@@ -103,7 +197,7 @@ const result3 = await generateText({
 });
 ```
 
-### 📺 Terminal UI
+### Terminal UI
 
 Monitor rooms in real-time with a beautiful TUI:
 
@@ -114,142 +208,7 @@ bun run dev ABC123
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- [Bun](https://bun.sh) 1.3.5 or later
-- An OpenAI-compatible LLM endpoint (Ollama, LM Studio, LocalAI, vLLM, etc.)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/gambiarra.git
-cd gambiarra
-
-# Install dependencies
-bun install
-
-# Build all packages
-bun run build
-```
-
-### Start Your First Room
-
-**1. Start the Hub Server**
-
-```bash
-cd packages/cli
-bun run src/cli.ts serve --port 3000 --mdns
-```
-
-**2. Create a Room**
-
-```bash
-# In another terminal
-bun run src/cli.ts create
-# Returns: Room created! Code: ABC123
-```
-
-**3. Join with Your LLM**
-
-```bash
-# On your machine (or a friend's)
-bun run src/cli.ts join ABC123 \
-  --endpoint http://localhost:11434 \
-  --model llama3 \
-  --nickname joao
-```
-
-**4. Use the SDK**
-
-```typescript
-import { createGambiarra } from "gambiarra";
-import { generateText } from "ai";
-
-const gambiarra = createGambiarra({
-  roomCode: "ABC123",
-  hubUrl: "http://localhost:3000",
-});
-
-const result = await generateText({
-  model: gambiarra.any(),
-  prompt: "Hello, Gambiarra!",
-});
-
-console.log(result.text);
-```
-
----
-
-## 📦 Project Structure
-
-```
-gambiarra/
-├── packages/
-│   ├── core/              # Core library (Hub, Room, Protocol)
-│   ├── cli/               # Command-line interface
-│   └── sdk/               # Vercel AI SDK integration
-├── apps/
-│   ├── docs/              # Documentation site (Astro Starlight)
-│   └── tui/               # Terminal UI for monitoring
-└── docs/                  # Architecture documentation
-```
-
-### Packages
-
-| Package | Description | Version |
-|---------|-------------|---------|
-| `@gambiarra/core` | Hub server, room management, SSE, mDNS | 0.0.1 |
-| `@gambiarra/cli` | CLI for managing hubs and participants | 0.0.1 |
-| `gambiarra` | Vercel AI SDK provider | 0.0.1 |
-
----
-
-## 🏗️ Architecture
-
-Gambiarra uses a **HTTP + SSE architecture** for simplicity and compatibility:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    GAMBIARRA HUB (HTTP)                     │
-│                                                             │
-│  Endpoints:                                                 │
-│  • POST   /rooms                    (Create room)          │
-│  • GET    /rooms                    (List rooms)           │
-│  • POST   /rooms/:code/join         (Join room)            │
-│  • POST   /rooms/:code/v1/chat/completions (Proxy)        │
-│  • GET    /rooms/:code/events       (SSE updates)          │
-└─────────────────────────────────────────────────────────────┘
-       ▲                    ▲                      ▲
-       │ HTTP               │ HTTP                 │ SSE
-       │                    │                      │
-  ┌────┴────┐    ┌─────────┴────────┐      ┌──────┴─────┐
-  │   SDK   │    │  Participants    │      │    TUI     │
-  └─────────┘    └──────────────────┘      └────────────┘
-```
-
-### Key Components
-
-- **Hub**: Central HTTP server that routes requests and manages rooms
-- **Participants**: LLM endpoints registered in a room (Ollama, LM Studio, etc.)
-- **SDK**: Vercel AI SDK provider that proxies to the hub
-- **TUI**: Real-time monitoring interface using Server-Sent Events
-
-### Model Routing
-
-| Pattern | Example | Description |
-|---------|---------|-------------|
-| **Participant ID** | `gambiarra.participant("joao")` | Route to specific participant |
-| **Model Name** | `gambiarra.model("llama3")` | Route to first participant with model |
-| **Any** | `gambiarra.any()` | Route to random online participant |
-
-For detailed architecture, see [docs/architecture.md](./docs/architecture.md).
-
----
-
-## 🔧 Usage Examples
+## Usage Examples
 
 ### CLI Commands
 
@@ -364,14 +323,89 @@ The TUI provides real-time monitoring of:
 
 ---
 
-## 🛠️ Development
+## Architecture
+
+Gambiarra uses a **HTTP + SSE architecture** for simplicity and compatibility:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GAMBIARRA HUB (HTTP)                     │
+│                                                             │
+│  Endpoints:                                                 │
+│  • POST   /rooms                    (Create room)          │
+│  • GET    /rooms                    (List rooms)           │
+│  • POST   /rooms/:code/join         (Join room)            │
+│  • POST   /rooms/:code/v1/chat/completions (Proxy)        │
+│  • GET    /rooms/:code/events       (SSE updates)          │
+└─────────────────────────────────────────────────────────────┘
+       ▲                    ▲                      ▲
+       │ HTTP               │ HTTP                 │ SSE
+       │                    │                      │
+  ┌────┴────┐    ┌─────────┴────────┐      ┌──────┴─────┐
+  │   SDK   │    │  Participants    │      │    TUI     │
+  └─────────┘    └──────────────────┘      └────────────┘
+```
+
+### Key Components
+
+- **Hub**: Central HTTP server that routes requests and manages rooms
+- **Participants**: LLM endpoints registered in a room (Ollama, LM Studio, etc.)
+- **SDK**: Vercel AI SDK provider that proxies to the hub
+- **TUI**: Real-time monitoring interface using Server-Sent Events
+
+### Model Routing
+
+| Pattern | Example | Description |
+|---------|---------|-------------|
+| **Participant ID** | `gambiarra.participant("joao")` | Route to specific participant |
+| **Model Name** | `gambiarra.model("llama3")` | Route to first participant with model |
+| **Any** | `gambiarra.any()` | Route to random online participant |
+
+### Project Structure
+
+```
+gambiarra/
+├── packages/
+│   ├── core/              # Core library (Hub, Room, Protocol)
+│   ├── cli/               # Command-line interface
+│   └── sdk/               # Vercel AI SDK integration
+├── apps/
+│   ├── docs/              # Documentation site (Astro Starlight)
+│   └── tui/               # Terminal UI for monitoring
+└── docs/                  # Architecture documentation
+```
+
+### Packages
+
+| Package | Description | Version |
+|---------|-------------|---------|
+| `@gambiarra/core` | Hub server, room management, SSE, mDNS | 0.0.1 |
+| `@gambiarra/cli` | CLI for managing hubs and participants | 0.0.1 |
+| `gambiarra` | Vercel AI SDK provider | 0.1.0 |
+
+For detailed architecture, see [docs/architecture.md](./docs/architecture.md).
+
+---
+
+## Development
 
 ### Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/arthurbm/gambiarra.git
+cd gambiarra
+
 # Install dependencies
 bun install
 
+# Build all packages
+bun run build
+```
+
+### Commands
+
+```bash
 # Run development server (all apps)
 bun run dev
 
@@ -403,14 +437,9 @@ bun run check-types
 
 This project uses [Ultracite](https://github.com/Kikobeats/ultracite), a zero-config preset for Biome. See [.claude/CLAUDE.md](./.claude/CLAUDE.md) for detailed code standards.
 
-**Quick commands:**
-- `bun x ultracite fix` - Auto-fix formatting and linting issues
-- `bun x ultracite check` - Check for issues
-- `bun x ultracite doctor` - Diagnose setup
-
 ---
 
-## 🌐 Supported Providers
+## Supported Providers
 
 Gambiarra works with any **OpenAI-compatible API**:
 
@@ -425,7 +454,7 @@ Gambiarra works with any **OpenAI-compatible API**:
 
 ---
 
-## 🔐 Security Considerations
+## Security Considerations
 
 - **Local Network Only**: Gambiarra is designed for trusted local networks
 - **No Authentication**: Currently no built-in auth (use network isolation)
@@ -439,7 +468,7 @@ For production use, consider:
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Authentication & authorization
 - [ ] Participant quotas and rate limiting
@@ -453,7 +482,7 @@ For production use, consider:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! This is an early-stage project and we'd love your help.
 
@@ -476,13 +505,13 @@ Contributions are welcome! This is an early-stage project and we'd love your hel
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](./LICENSE) for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built with:
 - [Bun](https://bun.sh) - Fast JavaScript runtime
@@ -496,8 +525,8 @@ Built with:
 
 <div align="center">
 
-**Made with ❤️ for the local LLM community**
+**Made with love for the local LLM community**
 
-[Report Bug](https://github.com/yourusername/gambiarra/issues) • [Request Feature](https://github.com/yourusername/gambiarra/issues)
+[Report Bug](https://github.com/arthurbm/gambiarra/issues) | [Request Feature](https://github.com/arthurbm/gambiarra/issues)
 
 </div>
