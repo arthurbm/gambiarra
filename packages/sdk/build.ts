@@ -6,18 +6,9 @@ import { $, build } from "bun";
 await rm("./dist", { recursive: true, force: true });
 console.log("✓ Cleaned dist/");
 
-// 2. Lista de entry points (todos os exports)
-const entrypoints = [
-  "./src/index.ts",
-  "./src/provider.ts",
-  "./src/types.ts",
-  "./src/protocol.ts",
-  "./src/rooms.ts",
-  "./src/participants.ts",
-  "./src/hub.ts",
-  "./src/utils.ts",
-  "./src/client.ts",
-];
+// 2. Apenas 1 entrypoint para evitar bug de duplicate exports do bun
+// O client é re-exportado pelo index, então não precisa de entrypoint separado
+const entrypoints = ["./src/index.ts"];
 
 // 3. Build com bun (gera .js)
 const result = await build({
@@ -27,7 +18,7 @@ const result = await build({
   format: "esm",
   sourcemap: "external",
   minify: false,
-  splitting: false, // Disabled to avoid duplicate exports
+  splitting: true, // Funciona bem com poucos entrypoints
   external: [
     // Peer dependencies não devem ser bundladas
     "ai",
