@@ -66,12 +66,19 @@ Command-line interface for managing hubs and participants.
 - `list` - List available rooms
 - `join` - Join a room with your LLM endpoint
 
-### `@gambiarra/sdk`
+### `gambiarra`
 
 SDK for integrating with the Vercel AI SDK.
 
+**Installation:**
+```bash
+npm install gambiarra
+```
+
+Available on npm: https://www.npmjs.com/package/gambiarra
+
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
