@@ -3,7 +3,7 @@ name: Release CLI
 on:
   push:
     tags:
-      - 'cli-v*'
+      - 'v*'
 
 jobs:
   build:
@@ -105,7 +105,7 @@ jobs:
 
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/cli-v}" >> $GITHUB_OUTPUT
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Update package.json version
         run: |

@@ -1,5 +1,5 @@
 {
-  "name": "@gambiarra/cli",
+  "name": "gambiarra",
   "version": "0.1.0",
   "description": "CLI for Gambiarra - Share local LLMs across your network",
   "keywords": [
