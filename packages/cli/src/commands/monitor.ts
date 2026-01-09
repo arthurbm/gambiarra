@@ -8,7 +8,10 @@ export class MonitorCommand extends Command {
     description: "Open TUI to monitor rooms in real-time",
     examples: [
       ["Monitor local hub", "gambiarra monitor"],
-      ["Monitor remote hub", "gambiarra monitor --hub http://192.168.1.100:3000"],
+      [
+        "Monitor remote hub",
+        "gambiarra monitor --hub http://192.168.1.100:3000",
+      ],
     ],
   });
 

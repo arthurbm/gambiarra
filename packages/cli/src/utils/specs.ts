@@ -1,4 +1,4 @@
-import { cpus, totalmem, platform } from "node:os";
+import { cpus, platform, totalmem } from "node:os";
 import { $ } from "bun";
 
 export interface MachineSpecs {
