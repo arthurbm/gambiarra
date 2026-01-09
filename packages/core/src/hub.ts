@@ -156,9 +156,9 @@ function listModels(code: string): Response {
   );
 
   // OpenAI-compatible /v1/models response
-  const models = participants.map((p) => ({
+  const models: GambiarraModel[] = participants.map((p) => ({
     id: p.id,
-    object: "model",
+    object: "model" as const,
     created: Math.floor(p.joinedAt / 1000),
     owned_by: p.nickname,
     gambiarra: {
@@ -168,13 +168,45 @@ function listModels(code: string): Response {
     },
   }));
 
-  return json({ object: "list", data: models });
+  const response: ModelsListResponse = { object: "list", data: models };
+  return json(response);
 }
 
-interface ChatCompletionBody {
+// OpenAI-compatible model response (extended with Gambiarra metadata)
+export interface GambiarraModel {
+  id: string;
+  object: "model";
+  created: number;
+  owned_by: string;
+  gambiarra: {
+    nickname: string;
+    model: string;
+    endpoint: string;
+  };
+}
+
+export interface ModelsListResponse {
+  object: "list";
+  data: GambiarraModel[];
+}
+
+// OpenAI-compatible chat completion request (extended for our routing)
+// model can be: participant ID, "model:<name>", or "*" for any
+export interface ChatCompletionRequest {
   model: string;
-  messages: unknown[];
+  messages: Array<{
+    role: "system" | "user" | "assistant" | "tool" | "function";
+    content: string | null;
+    [key: string]: unknown;
+  }>;
   stream?: boolean;
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
+  stop?: string | string[];
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  seed?: number;
   [key: string]: unknown;
 }
 
@@ -210,7 +242,7 @@ async function proxyChatCompletions(
     return error("Room not found", 404);
   }
 
-  const body = (await req.json()) as ChatCompletionBody;
+  const body = (await req.json()) as ChatCompletionRequest;
   const participant = findParticipant(room.id, body.model);
 
   if (!participant) {
