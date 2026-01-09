@@ -83,6 +83,12 @@ curl -fsSL https://raw.githubusercontent.com/arthurbm/gambiarra/main/scripts/ins
 npm install -g @gambiarra/cli
 ```
 
+**Via bun:**
+
+```bash
+bun add -g @gambiarra/cli
+```
+
 **Verify installation:**
 
 ```bash
