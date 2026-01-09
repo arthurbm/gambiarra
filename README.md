@@ -12,12 +12,13 @@
 
 **Share local LLMs across your network, effortlessly.**
 
+[![npm version](https://img.shields.io/npm/v/gambiarra)](https://www.npmjs.com/package/gambiarra)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-1.3.5-black?logo=bun&logoColor=white)](https://bun.sh)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.x-ef4444?logo=turborepo&logoColor=white)](https://turbo.build/repo)
 [![Vercel AI SDK](https://img.shields.io/badge/Vercel_AI_SDK-Compatible-000000?logo=vercel&logoColor=white)](https://sdk.vercel.ai)
 
-[Quick Start](#-quick-start) • [Documentation](./docs/architecture.md) • [Examples](#-usage-examples)
+[Quick Start](#-quick-start) • [npm Package](https://www.npmjs.com/package/gambiarra) • [Documentation](./docs/architecture.md) • [Examples](#-usage-examples)
 
 </div>
 
@@ -69,8 +70,16 @@ gambiarra list
 
 ### 🔧 SDK Integration
 
+Install via npm:
+
+```bash
+npm install gambiarra
+```
+
+Use in your project:
+
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
@@ -156,7 +165,7 @@ bun run src/cli.ts join ABC123 \
 **4. Use the SDK**
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({
@@ -194,7 +203,7 @@ gambiarra/
 |---------|-------------|---------|
 | `@gambiarra/core` | Hub server, room management, SSE, mDNS | 0.0.1 |
 | `@gambiarra/cli` | CLI for managing hubs and participants | 0.0.1 |
-| `@gambiarra/sdk` | Vercel AI SDK provider | 0.0.1 |
+| `gambiarra` | Vercel AI SDK provider | 0.0.1 |
 
 ---
 
@@ -292,7 +301,7 @@ gambiarra join ABC123 \
 #### Basic Chat
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
@@ -308,7 +317,7 @@ console.log(result.text);
 #### Streaming
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra";
 import { streamText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });

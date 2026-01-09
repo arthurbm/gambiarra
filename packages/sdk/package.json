@@ -1,25 +1,79 @@
 {
-  "name": "@gambiarra/sdk",
-  "version": "0.0.1",
-  "type": "module",
-  "main": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts",
-    "./provider": "./src/provider.ts",
-    "./types": "./src/types.ts",
-    "./protocol": "./src/protocol.ts",
-    "./rooms": "./src/rooms.ts",
-    "./participants": "./src/participants.ts",
-    "./hub": "./src/hub.ts",
-    "./utils": "./src/utils.ts",
-    "./client": "./src/client.ts"
+  "name": "gambiarra",
+  "version": "0.1.0",
+  "description": "Share local LLMs across your network, effortlessly",
+  "keywords": [
+    "llm",
+    "ollama",
+    "ai",
+    "vercel-ai-sdk",
+    "local-ai",
+    "local-llm",
+    "machine-learning",
+    "lm-studio",
+    "localai"
+  ],
+  "author": "Arthur BM",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arthurbm/gambiarra.git",
+    "directory": "packages/sdk"
   },
+  "homepage": "https://github.com/arthurbm/gambiarra",
+  "bugs": "https://github.com/arthurbm/gambiarra/issues",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./provider": {
+      "types": "./dist/provider.d.ts",
+      "default": "./dist/src/provider.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/src/types.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "default": "./dist/src/protocol.js"
+    },
+    "./rooms": {
+      "types": "./dist/rooms.d.ts",
+      "default": "./dist/src/rooms.js"
+    },
+    "./participants": {
+      "types": "./dist/participants.d.ts",
+      "default": "./dist/src/participants.js"
+    },
+    "./hub": {
+      "types": "./dist/hub.d.ts",
+      "default": "./dist/src/hub.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "default": "./dist/src/utils.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/src/client.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
+    "build": "bun run build.ts",
+    "prepublishOnly": "bun run build",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.2",
-    "@gambiarra/core": "../core",
     "zod": "^4.3.5"
   },
   "peerDependencies": {
@@ -30,5 +84,8 @@
     "@ai-sdk/provider": "^3.0.1",
     "@types/bun": "latest",
     "ai": "^6.0.6"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,11 +1,27 @@
-# @gambiarra/sdk
+# gambiarra
+
+[![npm version](https://img.shields.io/npm/v/gambiarra)](https://www.npmjs.com/package/gambiarra)
+[![npm downloads](https://img.shields.io/npm/dm/gambiarra)](https://www.npmjs.com/package/gambiarra)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 TypeScript SDK for Gambiarra - a distributed LLM coordination system.
 
 ## Installation
 
 ```bash
-bun add @gambiarra/sdk
+npm install gambiarra
+```
+
+or
+
+```bash
+bun add gambiarra
+```
+
+or
+
+```bash
+pnpm add gambiarra
 ```
 
 ## Overview
@@ -23,7 +39,7 @@ The SDK provides organized namespaces for interacting with Gambiarra hubs:
 ### Creating a Local Hub
 
 ```typescript
-import { hub, rooms, participants } from "@gambiarra/sdk";
+import { hub, rooms, participants } from "gambiarra";
 
 // Create a hub
 const myHub = hub.create({ port: 3000 });
@@ -52,7 +68,7 @@ rooms.addParticipant(room.id, participant);
 Connect to a remote Gambiarra hub:
 
 ```typescript
-import { createClient } from "@gambiarra/sdk/client";
+import { createClient } from "gambiarra/client";
 
 const client = createClient({ hubUrl: "http://hub.example.com:3000" });
 
@@ -82,7 +98,7 @@ await client.leave(room.code, "participant-1");
 Use Gambiarra as an AI provider:
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
@@ -220,7 +236,7 @@ import type {
   ChatCompletion,
   ChatCompletionCreateParams,
   Model,
-} from "@gambiarra/sdk/types";
+} from "gambiarra/types";
 ```
 
 ### Runtime Validation
@@ -232,7 +248,7 @@ import {
   ParticipantInfoSchema,
   RoomInfoSchema,
   GenerationConfigSchema,
-} from "@gambiarra/sdk/types";
+} from "gambiarra/types";
 
 // Validate at runtime
 const result = ParticipantInfoSchema.parse(data);
@@ -244,12 +260,12 @@ Import only what you need for optimal bundle size:
 
 ```typescript
 // Import specific namespaces
-import { rooms } from "@gambiarra/sdk/rooms";
-import { participants } from "@gambiarra/sdk/participants";
-import { hub } from "@gambiarra/sdk/hub";
+import { rooms } from "gambiarra/rooms";
+import { participants } from "gambiarra/participants";
+import { hub } from "gambiarra/hub";
 
 // Or from main entry
-import { rooms, participants, hub } from "@gambiarra/sdk";
+import { rooms, participants, hub } from "gambiarra";
 ```
 
 ## Architecture
@@ -271,7 +287,7 @@ The SDK is a **zero-duplication wrapper** around `@gambiarra/core`:
 ### Complete Workflow
 
 ```typescript
-import { hub, rooms, participants } from "@gambiarra/sdk";
+import { hub, rooms, participants } from "gambiarra";
 
 // 1. Create hub
 const myHub = hub.create({ port: 3000 });
@@ -321,7 +337,7 @@ for (const { roomId, participantId } of stale) {
 ### Error Handling
 
 ```typescript
-import { ClientError } from "@gambiarra/sdk/client";
+import { ClientError } from "gambiarra/client";
 
 try {
   await client.join("INVALID", participant);
