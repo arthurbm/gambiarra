@@ -1,6 +1,12 @@
 import type { LogMetrics, ParticipantInfo } from "../types";
 import { colors, statusIndicators } from "../types";
 
+const statusColorMap: Record<ParticipantInfo["status"], string> = {
+  online: colors.success,
+  busy: colors.warning,
+  offline: colors.muted,
+};
+
 interface ParticipantCardProps {
   participant: ParticipantInfo;
   isProcessing?: boolean;
@@ -18,12 +24,7 @@ export function ParticipantCard({
 }: ParticipantCardProps) {
   const status = isProcessing ? "busy" : participant.status;
   const indicator = statusIndicators[status];
-  const statusColor =
-    status === "online"
-      ? colors.success
-      : status === "busy"
-        ? colors.warning
-        : colors.muted;
+  const statusColor = statusColorMap[status];
 
   const borderColor = selected ? colors.primary : undefined;
 

@@ -28,6 +28,10 @@ function getEntryIcon(type: ActivityLogEntry["type"]): {
       return { icon: statusIndicators.complete, color: colors.success };
     case "error":
       return { icon: statusIndicators.error, color: colors.error };
+    default: {
+      const _exhaustive: never = type;
+      return { icon: "?", color: colors.muted };
+    }
   }
 }
 
