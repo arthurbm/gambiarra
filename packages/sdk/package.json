@@ -1,5 +1,5 @@
 {
-  "name": "gambiarra",
+  "name": "@gambiarra/sdk",
   "version": "0.1.0",
   "description": "Share local LLMs across your network, effortlessly",
   "keywords": [
