@@ -12,7 +12,7 @@ import { Room } from "./room.ts";
 
 const HealthResponseSchema = z.object({
   status: z.string(),
-  timestamp: z.string(),
+  timestamp: z.number(),
 });
 
 const RoomResponseSchema = z.object({
