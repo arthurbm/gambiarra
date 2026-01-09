@@ -95,6 +95,19 @@ bun add -g gambiarra
 gambiarra --version
 ```
 
+**Uninstall:**
+
+```bash
+# If installed via curl (standalone binary)
+sudo rm /usr/local/bin/gambiarra
+
+# If installed via npm
+npm uninstall -g gambiarra
+
+# If installed via bun
+bun remove -g gambiarra
+```
+
 ### SDK
 
 The SDK provides Vercel AI SDK integration for using shared LLMs in your applications.
@@ -109,6 +122,16 @@ npm install @gambiarra/sdk
 
 ```bash
 bun add @gambiarra/sdk
+```
+
+**Uninstall:**
+
+```bash
+# If installed via npm
+npm uninstall @gambiarra/sdk
+
+# If installed via bun
+bun remove @gambiarra/sdk
 ```
 
 ---
