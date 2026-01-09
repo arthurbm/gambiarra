@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+// Re-export OpenAI types for convenience
+export type {
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParams,
+  ChatCompletionMessage,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions";
+
+export type { Model, ModelDeleted } from "openai/resources/models";
+
 // Health check interval in milliseconds
 export const HEALTH_CHECK_INTERVAL = 10_000;
 // Time after which a participant is considered offline (3 missed health checks)

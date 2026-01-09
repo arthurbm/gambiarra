@@ -1,0 +1,320 @@
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
+import { createHub, type Hub } from "./hub.ts";
+import { Room } from "./room.ts";
+
+describe("Hub", () => {
+  let hub: Hub;
+  const PORT = 3999; // Use non-standard port for tests
+
+  beforeAll(() => {
+    hub = createHub({ port: PORT, hostname: "127.0.0.1" });
+  });
+
+  afterAll(() => {
+    hub.close();
+  });
+
+  beforeEach(() => {
+    Room.clear();
+  });
+
+  const baseUrl = `http://127.0.0.1:${PORT}`;
+
+  async function createRoom(name: string) {
+    const res = await fetch(`${baseUrl}/rooms`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    return res.json() as Promise<{
+      room: { id: string; code: string; name: string };
+      hostId: string;
+    }>;
+  }
+
+  async function joinRoom(
+    code: string,
+    participant: {
+      id: string;
+      nickname: string;
+      model: string;
+      endpoint: string;
+    }
+  ) {
+    const res = await fetch(`${baseUrl}/rooms/${code}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(participant),
+    });
+    return { res, data: await res.json() };
+  }
+
+  describe("GET /health", () => {
+    test("returns health status", async () => {
+      const res = await fetch(`${baseUrl}/health`);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.status).toBe("ok");
+      expect(data.timestamp).toBeDefined();
+    });
+  });
+
+  describe("POST /rooms", () => {
+    test("creates a new room", async () => {
+      const res = await fetch(`${baseUrl}/rooms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Test Room" }),
+      });
+      const data = await res.json();
+
+      expect(res.status).toBe(201);
+      expect(data.room.name).toBe("Test Room");
+      expect(data.room.code).toHaveLength(6);
+      expect(data.hostId).toBeDefined();
+    });
+
+    test("returns error when name is missing", async () => {
+      const res = await fetch(`${baseUrl}/rooms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(data.error).toBe("Name is required");
+    });
+  });
+
+  describe("GET /rooms", () => {
+    test("returns empty list when no rooms", async () => {
+      const res = await fetch(`${baseUrl}/rooms`);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.rooms).toEqual([]);
+    });
+
+    test("returns list of rooms with participant count", async () => {
+      await createRoom("Room 1");
+      await createRoom("Room 2");
+
+      const res = await fetch(`${baseUrl}/rooms`);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.rooms).toHaveLength(2);
+      expect(data.rooms[0].participantCount).toBe(0);
+    });
+  });
+
+  describe("POST /rooms/:code/join", () => {
+    test("joins a room", async () => {
+      const { room } = await createRoom("Test Room");
+      const { res, data } = await joinRoom(room.code, {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      expect(res.status).toBe(201);
+      expect(data.participant.id).toBe("participant-1");
+      expect(data.participant.nickname).toBe("test-user");
+      expect(data.roomId).toBe(room.id);
+    });
+
+    test("returns error for non-existent room", async () => {
+      const { res, data } = await joinRoom("XXXXXX", {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      expect(res.status).toBe(404);
+      expect(data.error).toBe("Room not found");
+    });
+
+    test("returns error when required fields are missing", async () => {
+      const { room } = await createRoom("Test Room");
+      const res = await fetch(`${baseUrl}/rooms/${room.code}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: "participant-1" }),
+      });
+      const data = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(data.error).toContain("Missing required fields");
+    });
+  });
+
+  describe("DELETE /rooms/:code/leave/:id", () => {
+    test("removes participant from room", async () => {
+      const { room } = await createRoom("Test Room");
+      await joinRoom(room.code, {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const res = await fetch(
+        `${baseUrl}/rooms/${room.code}/leave/participant-1`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.success).toBe(true);
+    });
+
+    test("returns error for non-existent participant", async () => {
+      const { room } = await createRoom("Test Room");
+      const res = await fetch(
+        `${baseUrl}/rooms/${room.code}/leave/non-existent`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+
+      expect(res.status).toBe(404);
+      expect(data.error).toBe("Participant not found");
+    });
+  });
+
+  describe("POST /rooms/:code/health", () => {
+    test("updates participant last seen", async () => {
+      const { room } = await createRoom("Test Room");
+      await joinRoom(room.code, {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const res = await fetch(`${baseUrl}/rooms/${room.code}/health`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: "participant-1" }),
+      });
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.success).toBe(true);
+    });
+
+    test("returns error for non-existent participant", async () => {
+      const { room } = await createRoom("Test Room");
+      const res = await fetch(`${baseUrl}/rooms/${room.code}/health`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: "non-existent" }),
+      });
+      const data = await res.json();
+
+      expect(res.status).toBe(404);
+      expect(data.error).toBe("Participant not found");
+    });
+  });
+
+  describe("GET /rooms/:code/participants", () => {
+    test("returns participants in room", async () => {
+      const { room } = await createRoom("Test Room");
+      await joinRoom(room.code, {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const res = await fetch(`${baseUrl}/rooms/${room.code}/participants`);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.participants).toHaveLength(1);
+      expect(data.participants[0].nickname).toBe("test-user");
+    });
+
+    test("returns error for non-existent room", async () => {
+      const res = await fetch(`${baseUrl}/rooms/XXXXXX/participants`);
+      const data = await res.json();
+
+      expect(res.status).toBe(404);
+      expect(data.error).toBe("Room not found");
+    });
+  });
+
+  describe("GET /rooms/:code/v1/models", () => {
+    test("returns OpenAI-compatible models list", async () => {
+      const { room } = await createRoom("Test Room");
+      await joinRoom(room.code, {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const res = await fetch(`${baseUrl}/rooms/${room.code}/v1/models`);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.object).toBe("list");
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].id).toBe("participant-1");
+      expect(data.data[0].object).toBe("model");
+      expect(data.data[0].owned_by).toBe("test-user");
+      expect(data.data[0].gambiarra).toEqual({
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+    });
+
+    test("only returns online participants", async () => {
+      const { room } = await createRoom("Test Room");
+      await joinRoom(room.code, {
+        id: "participant-1",
+        nickname: "test-user",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      // Mark participant as offline
+      Room.updateParticipantStatus(room.id, "participant-1", "offline");
+
+      const res = await fetch(`${baseUrl}/rooms/${room.code}/v1/models`);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(data.data).toHaveLength(0);
+    });
+  });
+
+  describe("OPTIONS (CORS)", () => {
+    test("returns CORS headers", async () => {
+      const res = await fetch(`${baseUrl}/rooms`, { method: "OPTIONS" });
+
+      expect(res.status).toBe(204);
+      expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+      expect(res.headers.get("Access-Control-Allow-Methods")).toContain("POST");
+    });
+  });
+
+  describe("404 handling", () => {
+    test("returns 404 for unknown routes", async () => {
+      const res = await fetch(`${baseUrl}/unknown`);
+
+      expect(res.status).toBe(404);
+    });
+  });
+});

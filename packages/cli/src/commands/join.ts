@@ -1,7 +1,7 @@
-import type { MachineSpecs } from "@gambiarra/core/types";
 import { HEALTH_CHECK_INTERVAL } from "@gambiarra/core/types";
 import { Command, Option } from "clipanion";
 import { nanoid } from "nanoid";
+import { detectSpecs, formatSpecs } from "../utils/specs.ts";
 
 interface ErrorResponse {
   error: string;
@@ -19,15 +19,6 @@ interface JoinResponse {
 
 interface OllamaTagsResponse {
   models?: { name: string }[];
-}
-
-function getMachineSpecs(): MachineSpecs {
-  return {
-    cpu: "Unknown",
-    ram: 0,
-    gpu: undefined,
-    vram: undefined,
-  };
 }
 
 async function getOllamaModels(endpoint: string): Promise<string[]> {
@@ -101,8 +92,19 @@ export class JoinCommand extends Command {
     description: "Hub URL",
   });
 
+  noSpecs = Option.Boolean("--no-specs", false, {
+    description: "Don't share machine specs (CPU, RAM, GPU)",
+  });
+
   async execute(): Promise<number> {
-    const specs = getMachineSpecs();
+    // Detect machine specs unless --no-specs is passed
+    const specs = this.noSpecs
+      ? { cpu: "Hidden", ram: 0 }
+      : await detectSpecs();
+
+    if (!this.noSpecs) {
+      this.context.stdout.write(`Detected specs: ${formatSpecs(specs)}\n\n`);
+    }
     const models = await getOllamaModels(this.endpoint);
 
     if (models.length === 0) {

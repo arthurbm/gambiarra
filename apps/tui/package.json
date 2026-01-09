@@ -2,17 +2,29 @@
   "name": "tui",
   "private": true,
   "type": "module",
+  "main": "src/index.tsx",
   "module": "src/index.tsx",
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.tsx"
+    }
+  },
   "scripts": {
     "dev": "bun run --watch src/index.tsx"
   },
   "dependencies": {
+    "@gambiarra/core": "workspace:*",
     "@opentui/core": "^0.1.67",
     "@opentui/react": "^0.1.67",
-    "react": "^19.2.3"
+    "nanoid": "^5.1.6",
+    "react": "^19.2.3",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/react": "^19.2.7"
   },
   "peerDependencies": {
     "typescript": "^5"

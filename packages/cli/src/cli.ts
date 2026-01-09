@@ -3,6 +3,7 @@ import { Builtins, Cli } from "clipanion";
 import { CreateCommand } from "./commands/create.ts";
 import { JoinCommand } from "./commands/join.ts";
 import { ListCommand } from "./commands/list.ts";
+import { MonitorCommand } from "./commands/monitor.ts";
 import { ServeCommand } from "./commands/serve.ts";
 
 const cli = new Cli({
@@ -15,6 +16,7 @@ cli.register(ServeCommand);
 cli.register(CreateCommand);
 cli.register(JoinCommand);
 cli.register(ListCommand);
+cli.register(MonitorCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 

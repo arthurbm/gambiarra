@@ -19,7 +19,8 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "openai": "^6.15.0"
   },
   "peerDependencies": {
     "typescript": "^5"
