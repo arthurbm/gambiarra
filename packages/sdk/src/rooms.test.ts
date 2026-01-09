@@ -1,0 +1,50 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { rooms } from "./rooms.ts";
+
+describe("SDK rooms namespace", () => {
+  beforeEach(() => {
+    rooms.clear();
+  });
+
+  afterEach(() => {
+    rooms.clear();
+  });
+
+  test("re-exports all Room functions", () => {
+    expect(rooms.create).toBeDefined();
+    expect(rooms.get).toBeDefined();
+    expect(rooms.getByCode).toBeDefined();
+    expect(rooms.list).toBeDefined();
+    expect(rooms.listWithParticipantCount).toBeDefined();
+    expect(rooms.remove).toBeDefined();
+    expect(rooms.addParticipant).toBeDefined();
+    expect(rooms.removeParticipant).toBeDefined();
+    expect(rooms.getParticipants).toBeDefined();
+    expect(rooms.getParticipant).toBeDefined();
+    expect(rooms.updateParticipantStatus).toBeDefined();
+    expect(rooms.updateLastSeen).toBeDefined();
+    expect(rooms.findParticipantByModel).toBeDefined();
+    expect(rooms.getRandomOnlineParticipant).toBeDefined();
+    expect(rooms.checkStaleParticipants).toBeDefined();
+    expect(rooms.clear).toBeDefined();
+  });
+
+  test("basic room creation workflow", () => {
+    const room = rooms.create("Test Room", "host-123");
+
+    expect(room.name).toBe("Test Room");
+    expect(room.hostId).toBe("host-123");
+    expect(room.code).toHaveLength(6);
+
+    const found = rooms.getByCode(room.code);
+    expect(found).toEqual(room);
+  });
+
+  test("list rooms", () => {
+    rooms.create("Room 1", "host-1");
+    rooms.create("Room 2", "host-2");
+
+    const allRooms = rooms.list();
+    expect(allRooms).toHaveLength(2);
+  });
+});

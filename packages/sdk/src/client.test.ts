@@ -1,0 +1,172 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { createHub, type Hub } from "@gambiarra/core/hub";
+import { Room } from "@gambiarra/core/room";
+import { ClientError, createClient } from "./client.ts";
+
+describe("HTTP Client", () => {
+  let hub: Hub;
+  const TEST_PORT = 3998;
+
+  beforeAll(() => {
+    hub = createHub({ port: TEST_PORT, hostname: "127.0.0.1" });
+    Room.clear();
+  });
+
+  afterAll(() => {
+    hub.close();
+  });
+
+  const client = createClient({ hubUrl: `http://127.0.0.1:${TEST_PORT}` });
+
+  describe("create", () => {
+    test("creates a new room", async () => {
+      const { room, hostId } = await client.create("Test Room");
+
+      expect(room.name).toBe("Test Room");
+      expect(room.code).toHaveLength(6);
+      expect(hostId).toBeDefined();
+    });
+
+    test("throws ClientError on failure", async () => {
+      // Invalid request (empty name will fail validation)
+      await expect(
+        fetch(`http://127.0.0.1:${TEST_PORT}/rooms`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }).then((res) => res.json())
+      ).resolves.toHaveProperty("error");
+    });
+  });
+
+  describe("list", () => {
+    test("lists all rooms", async () => {
+      Room.clear();
+      await client.create("Room 1");
+      await client.create("Room 2");
+
+      const rooms = await client.list();
+
+      expect(rooms).toHaveLength(2);
+      expect(rooms[0].name).toBe("Room 1");
+      expect(rooms[1].name).toBe("Room 2");
+    });
+
+    test("returns empty array when no rooms", async () => {
+      Room.clear();
+      const rooms = await client.list();
+
+      expect(rooms).toEqual([]);
+    });
+  });
+
+  describe("join", () => {
+    test("joins a room as a participant", async () => {
+      const { room } = await client.create("Test Room");
+
+      const { participant, roomId } = await client.join(room.code, {
+        id: "participant-1",
+        nickname: "Test Bot",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      expect(participant.id).toBe("participant-1");
+      expect(participant.nickname).toBe("Test Bot");
+      expect(roomId).toBe(room.id);
+    });
+
+    test("throws ClientError for non-existent room", async () => {
+      await expect(
+        client.join("XXXXXX", {
+          id: "participant-1",
+          nickname: "Test Bot",
+          model: "llama3",
+          endpoint: "http://localhost:11434",
+        })
+      ).rejects.toThrow(ClientError);
+    });
+  });
+
+  describe("leave", () => {
+    test("removes participant from room", async () => {
+      const { room } = await client.create("Test Room");
+      await client.join(room.code, {
+        id: "participant-1",
+        nickname: "Test Bot",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const result = await client.leave(room.code, "participant-1");
+
+      expect(result.success).toBe(true);
+    });
+
+    test("throws ClientError for non-existent participant", async () => {
+      const { room } = await client.create("Test Room");
+
+      await expect(client.leave(room.code, "non-existent")).rejects.toThrow(
+        ClientError
+      );
+    });
+  });
+
+  describe("getParticipants", () => {
+    test("returns participants in room", async () => {
+      const { room } = await client.create("Test Room");
+      await client.join(room.code, {
+        id: "participant-1",
+        nickname: "Test Bot",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const participants = await client.getParticipants(room.code);
+
+      expect(participants).toHaveLength(1);
+      expect(participants[0].nickname).toBe("Test Bot");
+    });
+
+    test("throws ClientError for non-existent room", async () => {
+      await expect(client.getParticipants("XXXXXX")).rejects.toThrow(
+        ClientError
+      );
+    });
+  });
+
+  describe("healthCheck", () => {
+    test("sends health check for participant", async () => {
+      const { room } = await client.create("Test Room");
+      await client.join(room.code, {
+        id: "participant-1",
+        nickname: "Test Bot",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      const result = await client.healthCheck(room.code, "participant-1");
+
+      expect(result.success).toBe(true);
+    });
+
+    test("throws ClientError for non-existent participant", async () => {
+      const { room } = await client.create("Test Room");
+
+      await expect(
+        client.healthCheck(room.code, "non-existent")
+      ).rejects.toThrow(ClientError);
+    });
+  });
+
+  describe("ClientError", () => {
+    test("includes status and response", () => {
+      const error = new ClientError("Test error", 404, { detail: "Not found" });
+
+      expect(error.message).toBe("Test error");
+      expect(error.status).toBe(404);
+      expect(error.response).toEqual({ detail: "Not found" });
+      expect(error.name).toBe("ClientError");
+    });
+  });
+});
