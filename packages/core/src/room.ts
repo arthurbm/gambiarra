@@ -6,7 +6,7 @@ import {
 } from "./types.ts";
 
 // Password hashing utilities using Bun's native password API
-// Uses bcrypt with automatic salting for secure password storage
+// Uses argon2id with automatic salting for secure password storage
 async function hashPassword(password: string): Promise<string> {
   return await Bun.password.hash(password);
 }
