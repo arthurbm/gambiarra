@@ -5,21 +5,17 @@ import {
   type RoomInfo,
 } from "./types.ts";
 
-// Password hashing utilities using Web Crypto API
+// Password hashing utilities using Bun's native password API
+// Uses bcrypt with automatic salting for secure password storage
 async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return await Bun.password.hash(password);
 }
 
 async function verifyPassword(
   password: string,
   hash: string
 ): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
+  return await Bun.password.verify(password, hash);
 }
 
 const rooms = new Map<string, RoomState>();

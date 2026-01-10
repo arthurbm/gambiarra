@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { rooms } from "./rooms.ts";
 
+// Argon2id hash format regex for testing (Bun's default password hash)
+const ARGON2ID_HASH_REGEX = /^\$argon2id\$/;
+
 describe("SDK rooms namespace", () => {
   beforeEach(() => {
     rooms.clear();
@@ -54,7 +57,7 @@ describe("SDK rooms namespace", () => {
 
     expect(room.name).toBe("Secured Room");
     expect(room.passwordHash).toBeDefined();
-    expect(room.passwordHash).toHaveLength(64); // SHA-256 hash is 64 hex chars
+    expect(room.passwordHash).toMatch(ARGON2ID_HASH_REGEX);
   });
 
   test("validate correct password", async () => {
