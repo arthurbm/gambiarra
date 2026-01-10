@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.2",
+    "@gambiarra/core": "workspace:*",
     "zod": "^4.3.5"
   },
   "peerDependencies": {
