@@ -91,7 +91,7 @@ export class ClientError extends Error {
  *
  * @example
  * ```typescript
- * import { createClient } from "@gambiarra/sdk/client";
+ * import { createClient } from "gambiarra-sdk/client";
  *
  * const client = createClient({ hubUrl: "http://hub.example.com:3000" });
  *

@@ -56,7 +56,7 @@ export interface GambiarraProvider {
  *
  * @example
  * ```typescript
- * import { createGambiarra } from "@gambiarra/sdk";
+ * import { createGambiarra } from "gambiarra-sdk";
  * import { generateText } from "ai";
  *
  * const gambiarra = createGambiarra({ roomCode: "ABC123" });

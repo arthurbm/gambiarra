@@ -83,7 +83,7 @@
       },
     },
     "packages/sdk": {
-      "name": "@gambiarra/sdk",
+      "name": "gambiarra-sdk",
       "version": "0.1.1",
       "dependencies": {
         "@ai-sdk/openai-compatible": "^2.0.2",
@@ -229,8 +229,6 @@
     "@gambiarra/config": ["@gambiarra/config@workspace:packages/config"],
 
     "@gambiarra/core": ["@gambiarra/core@workspace:packages/core"],
-
-    "@gambiarra/sdk": ["@gambiarra/sdk@workspace:packages/sdk"],
 
     "@img/colour": ["@img/colour@1.0.0", "", {}, "sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw=="],
 
@@ -737,6 +735,8 @@
     "fsevents": ["fsevents@2.3.3", "", { "os": "darwin" }, "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw=="],
 
     "gambiarra": ["gambiarra@workspace:packages/cli"],
+
+    "gambiarra-sdk": ["gambiarra-sdk@workspace:packages/sdk"],
 
     "get-east-asian-width": ["get-east-asian-width@1.4.0", "", {}, "sha512-QZjmEOC+IT1uk6Rx0sX22V6uHWVwbdbxf1faPqJ1QhLdGgsRGCZoyaQBm/piRdJy/D2um6hM1UP7ZEeQ4EkP+Q=="],
 

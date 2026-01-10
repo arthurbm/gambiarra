@@ -12,7 +12,7 @@
 
 **Share local LLMs across your network, effortlessly.**
 
-[![npm version](https://img.shields.io/npm/v/@gambiarra/sdk)](https://www.npmjs.com/package/@gambiarra/sdk)
+[![npm version](https://img.shields.io/npm/v/gambiarra-sdk)](https://www.npmjs.com/package/gambiarra-sdk)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-1.3.5-black?logo=bun&logoColor=white)](https://bun.sh)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.x-ef4444?logo=turborepo&logoColor=white)](https://turbo.build/repo)
@@ -115,23 +115,23 @@ The SDK provides Vercel AI SDK integration for using shared LLMs in your applica
 **Via npm:**
 
 ```bash
-npm install @gambiarra/sdk
+npm install gambiarra-sdk
 ```
 
 **Via bun:**
 
 ```bash
-bun add @gambiarra/sdk
+bun add gambiarra-sdk
 ```
 
 **Uninstall:**
 
 ```bash
 # If installed via npm
-npm uninstall @gambiarra/sdk
+npm uninstall gambiarra-sdk
 
 # If installed via bun
-bun remove @gambiarra/sdk
+bun remove gambiarra-sdk
 ```
 
 ---
@@ -163,7 +163,7 @@ gambiarra join ABC123 \
 ### 4. Use the SDK
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra-sdk";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({
@@ -202,7 +202,7 @@ gambiarra list
 ### SDK Integration
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra-sdk";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
@@ -289,7 +289,7 @@ gambiarra join ABC123 \
 #### Basic Chat
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra-sdk";
 import { generateText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
@@ -305,7 +305,7 @@ console.log(result.text);
 #### Streaming
 
 ```typescript
-import { createGambiarra } from "@gambiarra/sdk";
+import { createGambiarra } from "gambiarra-sdk";
 import { streamText } from "ai";
 
 const gambiarra = createGambiarra({ roomCode: "ABC123" });
@@ -409,7 +409,7 @@ gambiarra/
 | Package | Description | Version |
 |---------|-------------|---------|
 | `gambiarra` | CLI for managing hubs and participants | 0.1.0 |
-| `@gambiarra/sdk` | Vercel AI SDK provider | 0.1.0 |
+| `gambiarra-sdk` | Vercel AI SDK provider | 0.1.0 |
 | `@gambiarra/core` | Hub server, room management, SSE, mDNS (internal) | 0.0.1 |
 
 For detailed architecture, see [docs/architecture.md](./docs/architecture.md).

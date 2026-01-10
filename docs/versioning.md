@@ -8,7 +8,7 @@ All Gambiarra packages use **synchronized versions** - when a release is made, a
 
 ```
 gambiarra (CLI):     0.1.2
-@gambiarra/sdk:      0.1.2
+gambiarra-sdk:      0.1.2
 @gambiarra/core:     0.1.2  (internal)
 ```
 
@@ -40,7 +40,7 @@ Bumping a version without changes in a specific package:
 | Package | npm Name | Published | Notes |
 |---------|----------|-----------|-------|
 | CLI | `gambiarra` | Yes | Main product, includes TUI |
-| SDK | `@gambiarra/sdk` | Yes | For developers integrating with Vercel AI SDK |
+| SDK | `gambiarra-sdk` | Yes | For developers integrating with Vercel AI SDK |
 | Core | `@gambiarra/core` | No | Internal, bundled into SDK/CLI |
 | TUI | `tui` | No | Internal, `private: true`, used by CLI |
 | Config | `@gambiarra/config` | No | Internal, `private: true` |
