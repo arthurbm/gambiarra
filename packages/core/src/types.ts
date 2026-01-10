@@ -67,6 +67,7 @@ export const RoomInfo = z.object({
   name: z.string(),
   hostId: z.string(),
   createdAt: z.number(),
+  passwordHash: z.string().optional(), // Hashed password for room protection
 });
 
 export type RoomInfo = z.infer<typeof RoomInfo>;

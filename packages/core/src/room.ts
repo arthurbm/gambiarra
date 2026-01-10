@@ -5,6 +5,23 @@ import {
   type RoomInfo,
 } from "./types.ts";
 
+// Password hashing utilities using Web Crypto API
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function verifyPassword(
+  password: string,
+  hash: string
+): Promise<boolean> {
+  const passwordHash = await hashPassword(password);
+  return passwordHash === hash;
+}
+
 const rooms = new Map<string, RoomState>();
 const codeToRoomId = new Map<string, string>();
 
@@ -13,7 +30,11 @@ interface RoomState {
   participants: Map<string, ParticipantInfo>;
 }
 
-function create(name: string, hostId: string): RoomInfo {
+async function create(
+  name: string,
+  hostId: string,
+  password?: string
+): Promise<RoomInfo> {
   const id = nanoid();
   const code = nanoid(6).toUpperCase();
 
@@ -23,6 +44,7 @@ function create(name: string, hostId: string): RoomInfo {
     name,
     hostId,
     createdAt: Date.now(),
+    passwordHash: password ? await hashPassword(password) : undefined,
   };
 
   rooms.set(id, {
@@ -179,6 +201,29 @@ function clear(): void {
   codeToRoomId.clear();
 }
 
+async function validatePassword(
+  roomId: string,
+  password: string
+): Promise<boolean> {
+  const room = rooms.get(roomId);
+  if (!room) {
+    return false;
+  }
+
+  // If room has no password, allow access
+  if (!room.info.passwordHash) {
+    return true;
+  }
+
+  // If room has password but none provided, deny access
+  if (!password) {
+    return false;
+  }
+
+  // Verify password
+  return await verifyPassword(password, room.info.passwordHash);
+}
+
 export const Room = {
   create,
   get,
@@ -195,5 +240,6 @@ export const Room = {
   findParticipantByModel,
   getRandomOnlineParticipant,
   checkStaleParticipants,
+  validatePassword,
   clear,
 } as const;

@@ -26,6 +26,10 @@ export class CreateCommand extends Command {
         "Create on custom hub",
         "gambiarra create --name 'My Room' --hub http://192.168.1.10:3000",
       ],
+      [
+        "Create a password-protected room",
+        "gambiarra create --name 'My Room' --password secret123",
+      ],
     ],
   });
 
@@ -34,16 +38,26 @@ export class CreateCommand extends Command {
     required: true,
   });
 
+  password = Option.String("--password,-p", {
+    description: "Optional password to protect the room",
+    required: false,
+  });
+
   hub = Option.String("--hub,-H", "http://localhost:3000", {
     description: "Hub URL",
   });
 
   async execute(): Promise<number> {
     try {
+      const body: { name: string; password?: string } = { name: this.name };
+      if (this.password) {
+        body.password = this.password;
+      }
+
       const response = await fetch(`${this.hub}/rooms`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: this.name }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -57,6 +71,9 @@ export class CreateCommand extends Command {
       this.context.stdout.write("Room created!\n");
       this.context.stdout.write(`  Code: ${data.room.code}\n`);
       this.context.stdout.write(`  ID: ${data.room.id}\n`);
+      if (this.password) {
+        this.context.stdout.write("  Protection: Password-protected\n");
+      }
       this.context.stdout.write(
         "\nShare the code with participants to join.\n"
       );
