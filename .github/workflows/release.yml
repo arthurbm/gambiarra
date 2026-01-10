@@ -1,12 +1,86 @@
-name: Release CLI
+name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      package:
+        description: "Package to release"
+        required: true
+        type: choice
+        default: "all"
+        options:
+          - all
+          - sdk
+          - cli
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build:
+  publish:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Calculate new version
+        id: version
+        run: |
+          CURRENT=$(node -p "require('./packages/sdk/package.json').version")
+          NEW=$(bunx semver -i ${{ inputs.bump }} $CURRENT)
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "version=$NEW" >> $GITHUB_OUTPUT
+          echo "Bumping version: $CURRENT -> $NEW"
+
+      - name: Update versions and publish
+        run: bun run scripts/publish.ts ${{ steps.version.outputs.version }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PACKAGE: ${{ inputs.package }}
+
+      - name: Commit and tag
+        run: |
+          git add .
+          git commit -m "release: v${{ steps.version.outputs.version }}"
+          git tag v${{ steps.version.outputs.version }}
+          git push origin HEAD --tags
+
+  build-binaries:
+    needs: publish
+    if: inputs.package == 'all' || inputs.package == 'cli'
     strategy:
       matrix:
         include:
@@ -31,6 +105,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.publish.outputs.version }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -51,11 +127,10 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
 
-  release:
-    needs: build
+  github-release:
+    needs: [publish, build-binaries]
+    if: inputs.package == 'all' || inputs.package == 'cli'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Download all artifacts
@@ -66,9 +141,11 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ needs.publish.outputs.version }}
+          name: v${{ needs.publish.outputs.version }}
           files: |
             artifacts/gambiarra-linux-x64/gambiarra-linux-x64
             artifacts/gambiarra-linux-arm64/gambiarra-linux-arm64
@@ -80,41 +157,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  npm-publish:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Update package.json version
-        run: |
-          cd packages/cli
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-
-      - name: Publish to npm
-        run: |
-          cd packages/cli
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
