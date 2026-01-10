@@ -42,14 +42,14 @@ await $`bun install`;
 // CLI binaries are built separately in the build-binaries job
 console.log("\nBuilding SDK...");
 if (PACKAGE === "all" || PACKAGE === "sdk") {
-	await $`bun run build --filter=@gambiarra/sdk`;
+	await $`bun run build --filter=gambiarra-sdk`;
 }
 
 // 4. Publish to npm
 console.log("\nPublishing to npm...");
 
 if (PACKAGE === "all" || PACKAGE === "sdk") {
-	console.log("\n--- @gambiarra/sdk ---");
+	console.log("\n--- gambiarra-sdk ---");
 	await $`cd packages/sdk && npm publish --access public`.nothrow();
 }
 
