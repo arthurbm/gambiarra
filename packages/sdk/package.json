@@ -1,6 +1,6 @@
 {
   "name": "@gambiarra/sdk",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "Share local LLMs across your network, effortlessly",
   "keywords": [
     "llm",
@@ -42,7 +42,6 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.2",
-    "@gambiarra/core": "workspace:*",
     "zod": "^4.3.5"
   },
   "peerDependencies": {
@@ -51,6 +50,7 @@
   },
   "devDependencies": {
     "@ai-sdk/provider": "^3.0.1",
+    "@gambiarra/core": "workspace:*",
     "@types/bun": "latest",
     "ai": "^6.0.6"
   },
