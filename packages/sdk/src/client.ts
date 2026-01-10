@@ -17,6 +17,7 @@ export interface CreateParticipantOptions {
   nickname: string;
   model: string;
   endpoint: string;
+  password?: string;
   specs?: ParticipantInfo["specs"];
   config?: ParticipantInfo["config"];
 }
@@ -43,8 +44,8 @@ export interface JoinRoomResponse {
  * Provides methods for managing rooms and participants via HTTP.
  */
 export interface GambiarraClient {
-  /** Create a new room */
-  create(name: string): Promise<CreateRoomResponse>;
+  /** Create a new room with optional password protection */
+  create(name: string, password?: string): Promise<CreateRoomResponse>;
 
   /** List all rooms */
   list(): Promise<RoomInfo[]>;
@@ -95,15 +96,16 @@ export class ClientError extends Error {
  *
  * const client = createClient({ hubUrl: "http://hub.example.com:3000" });
  *
- * // Create a room
- * const { room, hostId } = await client.create("My Room");
+ * // Create a password-protected room
+ * const { room, hostId } = await client.create("My Room", "secret123");
  *
- * // Join the room
+ * // Join the room with password
  * await client.join(room.code, {
  *   id: "participant-1",
  *   nickname: "Bot",
  *   model: "llama3",
- *   endpoint: "http://localhost:11434"
+ *   endpoint: "http://localhost:11434",
+ *   password: "secret123"
  * });
  * ```
  */
@@ -135,10 +137,14 @@ export function createClient(options: ClientOptions = {}): GambiarraClient {
   }
 
   return {
-    create(name: string): Promise<CreateRoomResponse> {
+    create(name: string, password?: string): Promise<CreateRoomResponse> {
+      const body: { name: string; password?: string } = { name };
+      if (password) {
+        body.password = password;
+      }
       return request("/rooms", {
         method: "POST",
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(body),
       });
     },
 

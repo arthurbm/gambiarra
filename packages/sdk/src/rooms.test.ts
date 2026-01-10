@@ -48,4 +48,40 @@ describe("SDK rooms namespace", () => {
     const allRooms = rooms.list();
     expect(allRooms).toHaveLength(2);
   });
+
+  test("create password-protected room", async () => {
+    const room = await rooms.create("Secured Room", "host-123", "secret123");
+
+    expect(room.name).toBe("Secured Room");
+    expect(room.passwordHash).toBeDefined();
+    expect(room.passwordHash).toHaveLength(64); // SHA-256 hash is 64 hex chars
+  });
+
+  test("validate correct password", async () => {
+    const room = await rooms.create("Test", "host", "mypassword");
+
+    const isValid = await rooms.validatePassword(room.id, "mypassword");
+    expect(isValid).toBe(true);
+  });
+
+  test("reject incorrect password", async () => {
+    const room = await rooms.create("Test", "host", "mypassword");
+
+    const isValid = await rooms.validatePassword(room.id, "wrongpassword");
+    expect(isValid).toBe(false);
+  });
+
+  test("allow access to room without password", async () => {
+    const room = await rooms.create("Open Room", "host");
+
+    const isValid = await rooms.validatePassword(room.id, "");
+    expect(isValid).toBe(true);
+  });
+
+  test("deny access when password required but not provided", async () => {
+    const room = await rooms.create("Secured", "host", "pass123");
+
+    const isValid = await rooms.validatePassword(room.id, "");
+    expect(isValid).toBe(false);
+  });
 });

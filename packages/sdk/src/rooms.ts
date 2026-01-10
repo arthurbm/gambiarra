@@ -9,7 +9,12 @@ import { Room } from "@gambiarra/core/room";
  * and managing their lifecycle.
  */
 export const rooms = {
-  /** Create a new room */
+  /**
+   * Create a new room
+   * @param name - Room name
+   * @param hostId - Host identifier
+   * @param password - Optional password to protect the room
+   */
   create: Room.create,
 
   /** Get room by ID */

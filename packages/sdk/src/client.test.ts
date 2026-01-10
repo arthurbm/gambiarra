@@ -159,6 +159,70 @@ describe("HTTP Client", () => {
     });
   });
 
+  describe("password protection", () => {
+    test("creates password-protected room", async () => {
+      const { room } = await client.create("Secured Room", "secret123");
+
+      expect(room.name).toBe("Secured Room");
+      expect(room.passwordHash).toBeDefined();
+      expect(room.passwordHash).toHaveLength(64); // SHA-256
+    });
+
+    test("allows join with correct password", async () => {
+      const { room } = await client.create("Protected", "mypass");
+
+      const { participant } = await client.join(room.code, {
+        id: "participant-1",
+        nickname: "Test Bot",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+        password: "mypass",
+      });
+
+      expect(participant.id).toBe("participant-1");
+    });
+
+    test("rejects join with incorrect password", async () => {
+      const { room } = await client.create("Protected", "correctpass");
+
+      await expect(
+        client.join(room.code, {
+          id: "participant-1",
+          nickname: "Test Bot",
+          model: "llama3",
+          endpoint: "http://localhost:11434",
+          password: "wrongpass",
+        })
+      ).rejects.toThrow(ClientError);
+    });
+
+    test("rejects join without password when required", async () => {
+      const { room } = await client.create("Protected", "required");
+
+      await expect(
+        client.join(room.code, {
+          id: "participant-1",
+          nickname: "Test Bot",
+          model: "llama3",
+          endpoint: "http://localhost:11434",
+        })
+      ).rejects.toThrow(ClientError);
+    });
+
+    test("allows join without password when not required", async () => {
+      const { room } = await client.create("Open Room");
+
+      const { participant } = await client.join(room.code, {
+        id: "participant-1",
+        nickname: "Test Bot",
+        model: "llama3",
+        endpoint: "http://localhost:11434",
+      });
+
+      expect(participant.id).toBe("participant-1");
+    });
+  });
+
   describe("ClientError", () => {
     test("includes status and response", () => {
       const error = new ClientError("Test error", 404, { detail: "Not found" });
