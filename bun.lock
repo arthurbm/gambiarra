@@ -18,7 +18,7 @@
     },
     "apps/docs": {
       "name": "docs",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "dependencies": {
         "@astrojs/starlight": "^0.37.1",
         "astro": "^5.6.1",
@@ -45,7 +45,7 @@
     },
     "packages/cli": {
       "name": "gambiarra",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "gambiarra": "./src/cli.ts",
       },
@@ -64,11 +64,11 @@
     },
     "packages/config": {
       "name": "@gambiarra/config",
-      "version": "0.0.0",
+      "version": "0.1.1",
     },
     "packages/core": {
       "name": "@gambiarra/core",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "dependencies": {
         "bonjour-service": "^1.3.0",
         "nanoid": "^5.1.5",
@@ -84,14 +84,14 @@
     },
     "packages/sdk": {
       "name": "@gambiarra/sdk",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@ai-sdk/openai-compatible": "^2.0.2",
-        "@gambiarra/core": "workspace:*",
         "zod": "^4.3.5",
       },
       "devDependencies": {
         "@ai-sdk/provider": "^3.0.1",
+        "@gambiarra/core": "workspace:*",
         "@types/bun": "latest",
         "ai": "^6.0.6",
       },
