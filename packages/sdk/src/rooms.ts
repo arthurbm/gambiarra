@@ -54,6 +54,9 @@ export const rooms = {
   /** Check for stale participants and mark them offline */
   checkStaleParticipants: Room.checkStaleParticipants,
 
+  /** Validate password for a room */
+  validatePassword: Room.validatePassword,
+
   /** Clear all rooms (useful for testing) */
   clear: Room.clear,
 } as const;
