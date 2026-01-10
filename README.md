@@ -466,6 +466,41 @@ bun run check-types
 
 This project uses [Ultracite](https://github.com/Kikobeats/ultracite), a zero-config preset for Biome. See [.claude/CLAUDE.md](./.claude/CLAUDE.md) for detailed code standards.
 
+### Releasing
+
+Releases are automated via GitHub Actions. The workflow updates all package versions, publishes to npm, and creates GitHub releases with binaries.
+
+**Via GitHub UI:**
+
+1. Go to **Actions** > **Release** > **Run workflow**
+2. Select bump type: `patch`, `minor`, or `major`
+3. Select package: `all`, `sdk`, or `cli`
+4. Click **Run workflow**
+
+**Via GitHub CLI:**
+
+```bash
+# Release all packages with patch bump
+gh workflow run release.yml -f bump=patch -f package=all
+
+# Release only SDK with minor bump
+gh workflow run release.yml -f bump=minor -f package=sdk
+
+# Release only CLI with major bump
+gh workflow run release.yml -f bump=major -f package=cli
+
+# Watch the workflow progress
+gh run watch
+```
+
+The workflow will:
+- Calculate the new version (e.g., 0.1.1 → 0.1.2 for patch)
+- Update all `package.json` files
+- Build and publish to npm
+- Commit and tag the release
+- Build binaries for all platforms (if releasing CLI)
+- Create a GitHub Release with binaries
+
 ---
 
 ## Supported Providers
