@@ -38,13 +38,11 @@ for (const file of pkgjsons) {
 console.log("\nInstalling dependencies...");
 await $`bun install`;
 
-// 3. Build packages
-console.log("\nBuilding packages...");
+// 3. Build SDK (CLI doesn't need build for npm - it publishes source files)
+// CLI binaries are built separately in the build-binaries job
+console.log("\nBuilding SDK...");
 if (PACKAGE === "all" || PACKAGE === "sdk") {
 	await $`bun run build --filter=@gambiarra/sdk`;
-}
-if (PACKAGE === "all" || PACKAGE === "cli") {
-	await $`bun run build --filter=gambiarra`;
 }
 
 // 4. Publish to npm
