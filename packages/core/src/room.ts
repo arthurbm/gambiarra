@@ -5,6 +5,25 @@ import {
   type RoomInfo,
 } from "./types.ts";
 
+// Password hashing utilities using Bun's native password API
+// Uses argon2id with automatic salting for secure password storage
+async function hashPassword(password: string): Promise<string> {
+  return await Bun.password.hash(password);
+}
+
+async function verifyPassword(
+  password: string,
+  hash: string
+): Promise<boolean> {
+  return await Bun.password.verify(password, hash);
+}
+
+// Converts internal RoomInfo to public RoomInfo (strips sensitive fields)
+function toPublic(room: RoomInfo): Omit<RoomInfo, "passwordHash"> {
+  const { passwordHash, ...publicRoom } = room;
+  return publicRoom;
+}
+
 const rooms = new Map<string, RoomState>();
 const codeToRoomId = new Map<string, string>();
 
@@ -13,7 +32,11 @@ interface RoomState {
   participants: Map<string, ParticipantInfo>;
 }
 
-function create(name: string, hostId: string): RoomInfo {
+async function create(
+  name: string,
+  hostId: string,
+  password?: string
+): Promise<RoomInfo> {
   const id = nanoid();
   const code = nanoid(6).toUpperCase();
 
@@ -23,6 +46,7 @@ function create(name: string, hostId: string): RoomInfo {
     name,
     hostId,
     createdAt: Date.now(),
+    passwordHash: password ? await hashPassword(password) : undefined,
   };
 
   rooms.set(id, {
@@ -43,15 +67,15 @@ function getByCode(code: string): RoomInfo | undefined {
   return id ? rooms.get(id)?.info : undefined;
 }
 
-function list(): RoomInfo[] {
-  return Array.from(rooms.values()).map((r) => r.info);
+function list(): Omit<RoomInfo, "passwordHash">[] {
+  return Array.from(rooms.values()).map((r) => toPublic(r.info));
 }
 
-function listWithParticipantCount(): (RoomInfo & {
+function listWithParticipantCount(): (Omit<RoomInfo, "passwordHash"> & {
   participantCount: number;
 })[] {
   return Array.from(rooms.values()).map((r) => ({
-    ...r.info,
+    ...toPublic(r.info),
     participantCount: r.participants.size,
   }));
 }
@@ -179,6 +203,29 @@ function clear(): void {
   codeToRoomId.clear();
 }
 
+async function validatePassword(
+  roomId: string,
+  password: string
+): Promise<boolean> {
+  const room = rooms.get(roomId);
+  if (!room) {
+    return false;
+  }
+
+  // If room has no password, allow access
+  if (!room.info.passwordHash) {
+    return true;
+  }
+
+  // If room has password but none provided, deny access
+  if (!password) {
+    return false;
+  }
+
+  // Verify password
+  return await verifyPassword(password, room.info.passwordHash);
+}
+
 export const Room = {
   create,
   get,
@@ -195,5 +242,7 @@ export const Room = {
   findParticipantByModel,
   getRandomOnlineParticipant,
   checkStaleParticipants,
+  validatePassword,
+  toPublic,
   clear,
 } as const;

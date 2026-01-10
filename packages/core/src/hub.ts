@@ -45,17 +45,20 @@ function corsHeaders(): Response {
 
 // Route handlers
 async function createRoom(req: Request): Promise<Response> {
-  const body = (await req.json()) as { name: string };
+  const body = (await req.json()) as { name: string; password?: string };
   if (!body.name) {
     return error("Name is required");
   }
 
   const hostId = crypto.randomUUID();
-  const room = Room.create(body.name, hostId);
+  const room = await Room.create(body.name, hostId, body.password);
 
-  SSE.broadcast("room:created", room);
+  // Strip password hash from public responses to prevent offline brute-force attacks
+  const publicRoom = Room.toPublic(room);
 
-  return json({ room, hostId }, 201);
+  SSE.broadcast("room:created", publicRoom);
+
+  return json({ room: publicRoom, hostId }, 201);
 }
 
 function listRooms(): Response {
@@ -73,12 +76,22 @@ async function joinRoom(req: Request, code: string): Promise<Response> {
     nickname: string;
     model: string;
     endpoint: string;
+    password?: string;
     specs?: ParticipantInfo["specs"];
     config?: ParticipantInfo["config"];
   };
 
   if (!(body.id && body.nickname && body.model && body.endpoint)) {
     return error("Missing required fields: id, nickname, model, endpoint");
+  }
+
+  // Validate password if room is protected
+  const isPasswordValid = await Room.validatePassword(
+    room.id,
+    body.password ?? ""
+  );
+  if (!isPasswordValid) {
+    return error("Invalid password", 401);
   }
 
   const now = Date.now();

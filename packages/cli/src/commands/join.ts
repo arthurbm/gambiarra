@@ -67,6 +67,10 @@ export class JoinCommand extends Command {
         "Join with custom nickname",
         "gambiarra join --code ABC123 --model llama3 --endpoint http://localhost:11434 --nickname 'My GPU'",
       ],
+      [
+        "Join password-protected room",
+        "gambiarra join --code ABC123 --model llama3 --password secret123",
+      ],
     ],
   });
 
@@ -86,6 +90,11 @@ export class JoinCommand extends Command {
 
   nickname = Option.String("--nickname,-n", {
     description: "Display name for your endpoint",
+  });
+
+  password = Option.String("--password,-p", {
+    description: "Room password (if the room is password-protected)",
+    required: false,
   });
 
   hub = Option.String("--hub,-H", "http://localhost:3000", {
@@ -127,17 +136,23 @@ export class JoinCommand extends Command {
 
     // Register with the hub
     try {
+      const body: Record<string, unknown> = {
+        id: participantId,
+        nickname,
+        model: this.model,
+        endpoint: this.endpoint,
+        specs,
+        config: {},
+      };
+
+      if (this.password) {
+        body.password = this.password;
+      }
+
       const response = await fetch(`${this.hub}/rooms/${this.code}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: participantId,
-          nickname,
-          model: this.model,
-          endpoint: this.endpoint,
-          specs,
-          config: {},
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {

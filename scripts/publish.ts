@@ -6,11 +6,11 @@ const VERSION = process.env.VERSION || Bun.argv[2];
 const PACKAGE = process.env.PACKAGE || Bun.argv[3] || "all";
 
 if (!VERSION) {
-	console.error("Error: VERSION required");
-	console.error("Usage: bun run scripts/publish.ts <version> [package]");
-	console.error("  version: semver version (e.g., 0.1.2)");
-	console.error("  package: all | sdk | cli (default: all)");
-	process.exit(1);
+  console.error("Error: VERSION required");
+  console.error("Usage: bun run scripts/publish.ts <version> [package]");
+  console.error("  version: semver version (e.g., 0.1.2)");
+  console.error("  package: all | sdk | cli (default: all)");
+  process.exit(1);
 }
 
 console.log(`\n=== Publishing Gambiarra v${VERSION} ===\n`);
@@ -18,20 +18,20 @@ console.log(`Package: ${PACKAGE}\n`);
 
 // 1. Find and update all package.json files
 const pkgjsons = await Array.fromAsync(
-	new Bun.Glob("**/package.json").scan({ absolute: true })
+  new Bun.Glob("**/package.json").scan({ absolute: true })
 ).then((arr) =>
-	arr.filter((x) => !x.includes("node_modules") && !x.includes("dist"))
+  arr.filter((x) => !(x.includes("node_modules") || x.includes("dist")))
 );
 
 console.log("Updating package versions...");
 for (const file of pkgjsons) {
-	const content = await Bun.file(file).text();
-	const updated = content.replace(
-		/"version": "[^"]+"/,
-		`"version": "${VERSION}"`
-	);
-	await Bun.file(file).write(updated);
-	console.log(`  ✓ ${file.replace(process.cwd(), ".")}`);
+  const content = await Bun.file(file).text();
+  const updated = content.replace(
+    /"version": "[^"]+"/,
+    `"version": "${VERSION}"`
+  );
+  await Bun.file(file).write(updated);
+  console.log(`  ✓ ${file.replace(process.cwd(), ".")}`);
 }
 
 // 2. Install dependencies (in case lockfile needs update)
@@ -42,20 +42,20 @@ await $`bun install`;
 // CLI binaries are built separately in the build-binaries job
 console.log("\nBuilding SDK...");
 if (PACKAGE === "all" || PACKAGE === "sdk") {
-	await $`bun run build --filter=gambiarra-sdk`;
+  await $`bun run build --filter=gambiarra-sdk`;
 }
 
 // 4. Publish to npm
 console.log("\nPublishing to npm...");
 
 if (PACKAGE === "all" || PACKAGE === "sdk") {
-	console.log("\n--- gambiarra-sdk ---");
-	await $`cd packages/sdk && npm publish --access public`.nothrow();
+  console.log("\n--- gambiarra-sdk ---");
+  await $`cd packages/sdk && npm publish --access public`.nothrow();
 }
 
 if (PACKAGE === "all" || PACKAGE === "cli") {
-	console.log("\n--- gambiarra (CLI) ---");
-	await $`cd packages/cli && npm publish --access public`.nothrow();
+  console.log("\n--- gambiarra (CLI) ---");
+  await $`cd packages/cli && npm publish --access public`.nothrow();
 }
 
 console.log(`\n=== Published v${VERSION} successfully ===\n`);

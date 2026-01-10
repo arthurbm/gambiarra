@@ -29,8 +29,8 @@ describe("Room", () => {
   });
 
   describe("create", () => {
-    test("creates a room with unique id and code", () => {
-      const room = Room.create("Test Room", "host-123");
+    test("creates a room with unique id and code", async () => {
+      const room = await Room.create("Test Room", "host-123");
 
       expect(room.id).toBeDefined();
       expect(room.code).toBeDefined();
@@ -40,9 +40,9 @@ describe("Room", () => {
       expect(room.createdAt).toBeLessThanOrEqual(Date.now());
     });
 
-    test("creates rooms with different codes", () => {
-      const room1 = Room.create("Room 1", "host-1");
-      const room2 = Room.create("Room 2", "host-2");
+    test("creates rooms with different codes", async () => {
+      const room1 = await Room.create("Room 1", "host-1");
+      const room2 = await Room.create("Room 2", "host-2");
 
       expect(room1.code).not.toBe(room2.code);
       expect(room1.id).not.toBe(room2.id);
@@ -50,8 +50,8 @@ describe("Room", () => {
   });
 
   describe("get", () => {
-    test("returns room by id", () => {
-      const created = Room.create("Test", "host");
+    test("returns room by id", async () => {
+      const created = await Room.create("Test", "host");
       const found = Room.get(created.id);
 
       expect(found).toEqual(created);
@@ -64,15 +64,15 @@ describe("Room", () => {
   });
 
   describe("getByCode", () => {
-    test("returns room by code", () => {
-      const created = Room.create("Test", "host");
+    test("returns room by code", async () => {
+      const created = await Room.create("Test", "host");
       const found = Room.getByCode(created.code);
 
       expect(found).toEqual(created);
     });
 
-    test("is case-insensitive", () => {
-      const created = Room.create("Test", "host");
+    test("is case-insensitive", async () => {
+      const created = await Room.create("Test", "host");
       const found = Room.getByCode(created.code.toLowerCase());
 
       expect(found).toEqual(created);
@@ -89,9 +89,9 @@ describe("Room", () => {
       expect(Room.list()).toEqual([]);
     });
 
-    test("returns all rooms", () => {
-      Room.create("Room 1", "host-1");
-      Room.create("Room 2", "host-2");
+    test("returns all rooms", async () => {
+      await Room.create("Room 1", "host-1");
+      await Room.create("Room 2", "host-2");
 
       const rooms = Room.list();
       expect(rooms).toHaveLength(2);
@@ -99,8 +99,8 @@ describe("Room", () => {
   });
 
   describe("listWithParticipantCount", () => {
-    test("includes participant count", () => {
-      const room = Room.create("Test", "host");
+    test("includes participant count", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant();
       Room.addParticipant(room.id, participant);
 
@@ -113,8 +113,8 @@ describe("Room", () => {
   });
 
   describe("remove", () => {
-    test("removes existing room", () => {
-      const room = Room.create("Test", "host");
+    test("removes existing room", async () => {
+      const room = await Room.create("Test", "host");
       const removed = Room.remove(room.id);
 
       expect(removed).toBe(true);
@@ -129,8 +129,8 @@ describe("Room", () => {
   });
 
   describe("participants", () => {
-    test("addParticipant adds participant to room", () => {
-      const room = Room.create("Test", "host");
+    test("addParticipant adds participant to room", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant();
 
       const added = Room.addParticipant(room.id, participant);
@@ -146,8 +146,8 @@ describe("Room", () => {
       expect(added).toBe(false);
     });
 
-    test("removeParticipant removes participant from room", () => {
-      const room = Room.create("Test", "host");
+    test("removeParticipant removes participant from room", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant();
       Room.addParticipant(room.id, participant);
 
@@ -157,15 +157,15 @@ describe("Room", () => {
       expect(Room.getParticipants(room.id)).not.toContainEqual(participant);
     });
 
-    test("removeParticipant returns false for non-existent participant", () => {
-      const room = Room.create("Test", "host");
+    test("removeParticipant returns false for non-existent participant", async () => {
+      const room = await Room.create("Test", "host");
       const removed = Room.removeParticipant(room.id, "non-existent");
 
       expect(removed).toBe(false);
     });
 
-    test("getParticipant returns specific participant", () => {
-      const room = Room.create("Test", "host");
+    test("getParticipant returns specific participant", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant();
       Room.addParticipant(room.id, participant);
 
@@ -174,15 +174,15 @@ describe("Room", () => {
       expect(found).toEqual(participant);
     });
 
-    test("getParticipant returns undefined for non-existent participant", () => {
-      const room = Room.create("Test", "host");
+    test("getParticipant returns undefined for non-existent participant", async () => {
+      const room = await Room.create("Test", "host");
       const found = Room.getParticipant(room.id, "non-existent");
 
       expect(found).toBeUndefined();
     });
 
-    test("getParticipants returns empty array for room with no participants", () => {
-      const room = Room.create("Test", "host");
+    test("getParticipants returns empty array for room with no participants", async () => {
+      const room = await Room.create("Test", "host");
       expect(Room.getParticipants(room.id)).toEqual([]);
     });
 
@@ -192,8 +192,8 @@ describe("Room", () => {
   });
 
   describe("updateParticipantStatus", () => {
-    test("updates participant status", () => {
-      const room = Room.create("Test", "host");
+    test("updates participant status", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({ status: "online" });
       Room.addParticipant(room.id, participant);
 
@@ -207,8 +207,8 @@ describe("Room", () => {
       expect(Room.getParticipant(room.id, participant.id)?.status).toBe("busy");
     });
 
-    test("returns false for non-existent participant", () => {
-      const room = Room.create("Test", "host");
+    test("returns false for non-existent participant", async () => {
+      const room = await Room.create("Test", "host");
       const updated = Room.updateParticipantStatus(
         room.id,
         "non-existent",
@@ -220,8 +220,8 @@ describe("Room", () => {
   });
 
   describe("updateLastSeen", () => {
-    test("updates lastSeen timestamp and sets status to online", () => {
-      const room = Room.create("Test", "host");
+    test("updates lastSeen timestamp and sets status to online", async () => {
+      const room = await Room.create("Test", "host");
       const oldTime = Date.now() - 60_000;
       const participant = createMockParticipant({
         lastSeen: oldTime,
@@ -237,8 +237,8 @@ describe("Room", () => {
       expect(found?.status).toBe("online");
     });
 
-    test("returns false for non-existent participant", () => {
-      const room = Room.create("Test", "host");
+    test("returns false for non-existent participant", async () => {
+      const room = await Room.create("Test", "host");
       const updated = Room.updateLastSeen(room.id, "non-existent");
 
       expect(updated).toBe(false);
@@ -246,8 +246,8 @@ describe("Room", () => {
   });
 
   describe("findParticipantByModel", () => {
-    test("finds online participant with matching model", () => {
-      const room = Room.create("Test", "host");
+    test("finds online participant with matching model", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({
         model: "gpt-4",
         status: "online",
@@ -259,8 +259,8 @@ describe("Room", () => {
       expect(found).toEqual(participant);
     });
 
-    test("does not find offline participant", () => {
-      const room = Room.create("Test", "host");
+    test("does not find offline participant", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({
         model: "gpt-4",
         status: "offline",
@@ -272,8 +272,8 @@ describe("Room", () => {
       expect(found).toBeUndefined();
     });
 
-    test("returns undefined for non-matching model", () => {
-      const room = Room.create("Test", "host");
+    test("returns undefined for non-matching model", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({ model: "gpt-4" });
       Room.addParticipant(room.id, participant);
 
@@ -289,8 +289,8 @@ describe("Room", () => {
   });
 
   describe("getRandomOnlineParticipant", () => {
-    test("returns online participant", () => {
-      const room = Room.create("Test", "host");
+    test("returns online participant", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({ status: "online" });
       Room.addParticipant(room.id, participant);
 
@@ -299,8 +299,8 @@ describe("Room", () => {
       expect(found).toEqual(participant);
     });
 
-    test("does not return offline participant", () => {
-      const room = Room.create("Test", "host");
+    test("does not return offline participant", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({ status: "offline" });
       Room.addParticipant(room.id, participant);
 
@@ -309,8 +309,8 @@ describe("Room", () => {
       expect(found).toBeUndefined();
     });
 
-    test("returns undefined for room with no participants", () => {
-      const room = Room.create("Test", "host");
+    test("returns undefined for room with no participants", async () => {
+      const room = await Room.create("Test", "host");
       const found = Room.getRandomOnlineParticipant(room.id);
 
       expect(found).toBeUndefined();
@@ -323,8 +323,8 @@ describe("Room", () => {
   });
 
   describe("checkStaleParticipants", () => {
-    test("marks stale participants as offline and returns them", () => {
-      const room = Room.create("Test", "host");
+    test("marks stale participants as offline and returns them", async () => {
+      const room = await Room.create("Test", "host");
       // Create participant with lastSeen 60 seconds ago (well past 30s timeout)
       const staleTime = Date.now() - 60_000;
       const participant = createMockParticipant({
@@ -345,8 +345,8 @@ describe("Room", () => {
       );
     });
 
-    test("does not mark recent participants as stale", () => {
-      const room = Room.create("Test", "host");
+    test("does not mark recent participants as stale", async () => {
+      const room = await Room.create("Test", "host");
       const participant = createMockParticipant({
         lastSeen: Date.now(),
         status: "online",
@@ -363,9 +363,9 @@ describe("Room", () => {
   });
 
   describe("clear", () => {
-    test("removes all rooms", () => {
-      Room.create("Room 1", "host-1");
-      Room.create("Room 2", "host-2");
+    test("removes all rooms", async () => {
+      await Room.create("Room 1", "host-1");
+      await Room.create("Room 2", "host-2");
 
       Room.clear();
 
