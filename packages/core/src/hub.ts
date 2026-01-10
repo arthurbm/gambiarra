@@ -54,11 +54,11 @@ async function createRoom(req: Request): Promise<Response> {
   const room = await Room.create(body.name, hostId, body.password);
 
   // Strip password hash from public responses to prevent offline brute-force attacks
-  const { passwordHash, ...roomWithoutHash } = room;
+  const publicRoom = Room.toPublic(room);
 
-  SSE.broadcast("room:created", roomWithoutHash);
+  SSE.broadcast("room:created", publicRoom);
 
-  return json({ room: roomWithoutHash, hostId }, 201);
+  return json({ room: publicRoom, hostId }, 201);
 }
 
 function listRooms(): Response {

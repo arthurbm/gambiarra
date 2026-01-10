@@ -62,6 +62,9 @@ export const rooms = {
   /** Validate password for a room */
   validatePassword: Room.validatePassword,
 
+  /** Convert internal RoomInfo to public (strips sensitive fields) */
+  toPublic: Room.toPublic,
+
   /** Clear all rooms (useful for testing) */
   clear: Room.clear,
 } as const;

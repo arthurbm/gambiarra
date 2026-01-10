@@ -18,6 +18,12 @@ async function verifyPassword(
   return await Bun.password.verify(password, hash);
 }
 
+// Converts internal RoomInfo to public RoomInfo (strips sensitive fields)
+function toPublic(room: RoomInfo): Omit<RoomInfo, "passwordHash"> {
+  const { passwordHash, ...publicRoom } = room;
+  return publicRoom;
+}
+
 const rooms = new Map<string, RoomState>();
 const codeToRoomId = new Map<string, string>();
 
@@ -61,23 +67,17 @@ function getByCode(code: string): RoomInfo | undefined {
   return id ? rooms.get(id)?.info : undefined;
 }
 
-function list(): RoomInfo[] {
-  return Array.from(rooms.values()).map((r) => {
-    const { passwordHash, ...roomWithoutHash } = r.info;
-    return roomWithoutHash as RoomInfo;
-  });
+function list(): Omit<RoomInfo, "passwordHash">[] {
+  return Array.from(rooms.values()).map((r) => toPublic(r.info));
 }
 
-function listWithParticipantCount(): (RoomInfo & {
+function listWithParticipantCount(): (Omit<RoomInfo, "passwordHash"> & {
   participantCount: number;
 })[] {
-  return Array.from(rooms.values()).map((r) => {
-    const { passwordHash, ...roomWithoutHash } = r.info;
-    return {
-      ...roomWithoutHash,
-      participantCount: r.participants.size,
-    } as RoomInfo & { participantCount: number };
-  });
+  return Array.from(rooms.values()).map((r) => ({
+    ...toPublic(r.info),
+    participantCount: r.participants.size,
+  }));
 }
 
 function remove(id: string): boolean {
@@ -243,5 +243,6 @@ export const Room = {
   getRandomOnlineParticipant,
   checkStaleParticipants,
   validatePassword,
+  toPublic,
   clear,
 } as const;

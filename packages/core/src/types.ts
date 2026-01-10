@@ -61,7 +61,8 @@ export const ParticipantInfo = z.object({
 
 export type ParticipantInfo = z.infer<typeof ParticipantInfo>;
 
-export const RoomInfo = z.object({
+// Internal room info schema (includes sensitive fields like passwordHash)
+export const RoomInfoInternal = z.object({
   id: z.string(),
   code: z.string(),
   name: z.string(),
@@ -70,7 +71,12 @@ export const RoomInfo = z.object({
   passwordHash: z.string().optional(), // Hashed password for room protection
 });
 
-export type RoomInfo = z.infer<typeof RoomInfo>;
+// Public room info schema (excludes sensitive fields for API responses)
+export const RoomInfoPublic = RoomInfoInternal.omit({ passwordHash: true });
+
+// Type aliases
+export type RoomInfo = z.infer<typeof RoomInfoInternal>; // Internal type
+export type RoomInfoPublic = z.infer<typeof RoomInfoPublic>; // Public type
 
 export const LlmMetrics = z.object({
   tokens: z.number(),
