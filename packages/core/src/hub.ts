@@ -53,9 +53,12 @@ async function createRoom(req: Request): Promise<Response> {
   const hostId = crypto.randomUUID();
   const room = await Room.create(body.name, hostId, body.password);
 
-  SSE.broadcast("room:created", room);
+  // Strip password hash from public responses to prevent offline brute-force attacks
+  const { passwordHash, ...roomWithoutHash } = room;
 
-  return json({ room, hostId }, 201);
+  SSE.broadcast("room:created", roomWithoutHash);
+
+  return json({ room: roomWithoutHash, hostId }, 201);
 }
 
 function listRooms(): Response {

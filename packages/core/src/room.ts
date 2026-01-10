@@ -62,16 +62,22 @@ function getByCode(code: string): RoomInfo | undefined {
 }
 
 function list(): RoomInfo[] {
-  return Array.from(rooms.values()).map((r) => r.info);
+  return Array.from(rooms.values()).map((r) => {
+    const { passwordHash, ...roomWithoutHash } = r.info;
+    return roomWithoutHash as RoomInfo;
+  });
 }
 
 function listWithParticipantCount(): (RoomInfo & {
   participantCount: number;
 })[] {
-  return Array.from(rooms.values()).map((r) => ({
-    ...r.info,
-    participantCount: r.participants.size,
-  }));
+  return Array.from(rooms.values()).map((r) => {
+    const { passwordHash, ...roomWithoutHash } = r.info;
+    return {
+      ...roomWithoutHash,
+      participantCount: r.participants.size,
+    } as RoomInfo & { participantCount: number };
+  });
 }
 
 function remove(id: string): boolean {

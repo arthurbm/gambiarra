@@ -3,9 +3,6 @@ import { createHub, type Hub } from "@gambiarra/core/hub";
 import { Room } from "@gambiarra/core/room";
 import { ClientError, createClient } from "./client.ts";
 
-// Argon2id hash format regex for testing (Bun's default password hash)
-const ARGON2ID_HASH_REGEX = /^\$argon2id\$/;
-
 describe("HTTP Client", () => {
   let hub: Hub;
   const TEST_PORT = 3998;
@@ -167,8 +164,7 @@ describe("HTTP Client", () => {
       const { room } = await client.create("Secured Room", "secret123");
 
       expect(room.name).toBe("Secured Room");
-      expect(room.passwordHash).toBeDefined();
-      expect(room.passwordHash).toMatch(ARGON2ID_HASH_REGEX);
+      // Password hash should NOT be exposed in API responses (security)
     });
 
     test("allows join with correct password", async () => {
