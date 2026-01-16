@@ -4,23 +4,25 @@ import { defineConfig } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ["zod"],
+    },
+  },
   integrations: [
     starlight({
-      title: "My Docs",
+      title: "Gambiarra",
       social: [
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/withastro/starlight",
+          href: "https://github.com/arthurbm/gambiarra",
         },
       ],
       sidebar: [
         {
           label: "Guides",
-          items: [
-            // Each item here is one entry in the navigation menu.
-            { label: "Example Guide", slug: "guides/example" },
-          ],
+          items: [{ label: "Quick Start", slug: "guides/quickstart" }],
         },
         {
           label: "Reference",
