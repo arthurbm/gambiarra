@@ -12,6 +12,10 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Gambiarra",
+      customCss: ["./src/styles/custom.css"],
+      components: {
+        Hero: "./src/components/Hero.astro",
+      },
       social: [
         {
           icon: "github",
@@ -22,11 +26,23 @@ export default defineConfig({
       sidebar: [
         {
           label: "Guides",
-          items: [{ label: "Quick Start", slug: "guides/quickstart" }],
+          items: [
+            { label: "Quick Start", slug: "guides/quickstart" },
+            { label: "Hackathon Setup", slug: "guides/hackathon" },
+            { label: "Home Lab Setup", slug: "guides/homelab" },
+          ],
+        },
+        {
+          label: "Architecture",
+          autogenerate: { directory: "architecture" },
         },
         {
           label: "Reference",
           autogenerate: { directory: "reference" },
+        },
+        {
+          label: "Troubleshooting",
+          autogenerate: { directory: "troubleshooting" },
         },
       ],
     }),

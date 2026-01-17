@@ -4,41 +4,6 @@ description: Share local LLMs across your network, effortlessly.
 template: splash
 hero:
   tagline: A local-first LLM sharing system. Pool your Ollama, LM Studio, or any OpenAI-compatible endpoint with your team.
-  image:
-    file: ../../assets/houston.webp
-  actions:
-    - text: Get Started
-      link: /guides/quickstart/
-      icon: right-arrow
-    - text: View on GitHub
-      link: https://github.com/arthurbm/gambiarra
-      icon: external
-      variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
-
-## Why Gambiarra?
-
-<CardGrid stagger>
-	<Card title="Local-First" icon="laptop">
-		Your data stays on your network. No cloud dependencies, no external APIs.
-	</Card>
-	<Card title="Resource Sharing" icon="rocket">
-		Pool LLM endpoints across your team. Share expensive GPU resources efficiently.
-	</Card>
-	<Card title="Universal Compatibility" icon="setting">
-		Works with Ollama, LM Studio, LocalAI, vLLM, and any OpenAI-compatible API.
-	</Card>
-	<Card title="Vercel AI SDK" icon="puzzle">
-		Drop-in replacement for your AI SDK workflows. Same API, shared resources.
-	</Card>
-</CardGrid>
-
-## Use Cases
-
-- **Development Teams**: Share expensive LLM endpoints across your team
-- **Hackathons**: Pool resources for AI projects
-- **Research Labs**: Coordinate LLM access across multiple workstations
-- **Home Labs**: Share your gaming PC's LLM with your laptop
-- **Education**: Classroom environments where students share compute
+{/* The custom Lander component is rendered via Hero.astro override */}
